@@ -49,13 +49,17 @@ const emit = defineEmits<{
 	contextmenu: [event: MouseEvent]
 }>();
 
-const authorColor = computed(() =>
+// Reserved for future avatar rendering
+const _authorColor = computed(() =>
 	hashAuthorColor(props.commit.authorEmail || props.commit.authorName),
 );
 
-const authorInitial = computed(() =>
+const _authorInitial = computed(() =>
 	props.commit.authorName?.charAt(0)?.toUpperCase() ?? '?',
 );
+
+void _authorColor;
+void _authorInitial;
 </script>
 
 <style scoped lang="scss">

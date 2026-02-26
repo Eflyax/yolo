@@ -45,15 +45,7 @@
 <script setup lang="ts">
 import {computed} from 'vue';
 import type {ICommit} from '@/domain';
-
-const COLORS = [
-	'#30a0bf',
-	'#0f69f7',
-	'#8e02c2',
-	'#9f544c',
-	'#984c80',
-	'#77509b',
-];
+import {getGraphColor} from './graphColors';
 
 const X_STEP = 20;
 const Y_STEP = 28;
@@ -87,7 +79,7 @@ const svgWidth = computed(() => {
 const svgHeight = computed(() => props.commits.length * Y_STEP + 10);
 
 function getColor(level: number): string {
-	return COLORS[level % COLORS.length]!;
+	return getGraphColor(level);
 }
 
 function getPathColor(commit: Readonly<ICommit>, parentHash: string): string {

@@ -20,8 +20,17 @@
 		<!-- Graph + rows -->
 		<div v-else class="commit-history__scroll" ref="scrollEl">
 			<div class="commit-history__content" :style="{height: commits.length * ROW_HEIGHT + 'px'}">
+				<!-- References column (LEFT of graph) -->
+				<div class="commit-history__refs-col">
+					<CommitRefsRow
+						v-for="commit in commits"
+						:key="commit.hash"
+						:commit="commit"
+					/>
+				</div>
+
 				<!-- SVG graph overlay -->
-				<div class="commit-history__graph-col">
+				<div class="commit-history__graph-col" :style="{left: REFS_WIDTH + 'px'}">
 					<CommitGraph
 						:commits="commits"
 						:selected-hash="selectedHash"
@@ -29,7 +38,7 @@
 				</div>
 
 				<!-- Commit rows -->
-				 <div class="commit-history__rows" :style="{marginLeft: graphWidth + 'px'}">
+				<div class="commit-history__rows" :style="{marginLeft: totalLeftMargin + 'px'}">
 					<CommitRow
 						v-for="commit in commits"
 						:key="commit.hash"
@@ -49,6 +58,7 @@ import {ref, computed, onMounted, watch} from 'vue';
 import {NSpin, useMessage} from 'naive-ui';
 import CommitGraph from './CommitGraph.vue';
 import CommitRow from './CommitRow.vue';
+import CommitRefsRow from './CommitRefsRow.vue';
 import Icon from '@/ui/components/Icon.vue';
 import {useCommits} from '@/composables/useCommits';
 import {useWorkingTree} from '@/composables/useWorkingTree';
@@ -58,6 +68,7 @@ import {useLayout} from '@/composables/useLayout';
 import type {ICommit} from '@/domain';
 
 const ROW_HEIGHT = 28;
+const REFS_WIDTH = 180;
 
 const message = useMessage();
 const {commits, selectedHashes, selectCommit, loadCommits} = useCommits();
@@ -77,6 +88,8 @@ const graphWidth = computed(() => {
 
 	return (maxLevel + 1) * 20 + 12 + 16 + 4;
 });
+
+const totalLeftMargin = computed(() => REFS_WIDTH + graphWidth.value);
 
 async function refresh(): Promise<void> {
 	if (!currentProject.value) {
@@ -126,10 +139,17 @@ watch(() => currentProject.value, refresh);
 		position: relative;
 	}
 
-	&__graph-col {
+	&__refs-col {
 		position: absolute;
 		top: 0;
 		left: 0;
+		width: 180px;
+		pointer-events: none;
+	}
+
+	&__graph-col {
+		position: absolute;
+		top: 0;
 		bottom: 0;
 		pointer-events: none;
 	}

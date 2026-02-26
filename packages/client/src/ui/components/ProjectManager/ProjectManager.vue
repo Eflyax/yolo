@@ -41,7 +41,7 @@
 									v-for="project in projectsByGroup[group.id]"
 									:key="project.id"
 									:project="project"
-									@open="openProject(project)"
+									@open="handleOpenProject(project)"
 									@edit="openEdit(project)"
 									@delete="confirmDelete(project)"
 								/>
@@ -58,7 +58,7 @@
 								v-for="project in ungrouped"
 								:key="project.id"
 								:project="project"
-								@open="openProject(project)"
+								@open="handleOpenProject(project)"
 								@edit="openEdit(project)"
 								@delete="confirmDelete(project)"
 							/>
@@ -187,7 +187,6 @@ import {
 	useDialog,
 } from 'naive-ui';
 import {useProject} from '@/composables/useProject';
-import {useWebSocket} from '@/composables/useWebSocket';
 import type {IProject, IProjectGroup} from '@/domain';
 import Icon from '@/ui/components/Icon.vue';
 import ProjectForm from './ProjectForm.vue';
@@ -206,7 +205,7 @@ const GROUP_COLORS = [
 import ProjectRow from './ProjectRow.vue';
 
 const emit = defineEmits<{
-	projectOpened: [project: IProject];
+	'project-opened': []
 }>();
 
 const dialog = useDialog();
@@ -246,6 +245,11 @@ const ungrouped = computed(() =>
 );
 
 // ── Project actions ──────────────────────────────────────────────────────────
+
+function handleOpenProject(project: IProject): void {
+	openProject(project);
+	emit('project-opened');
+}
 
 function openAdd(): void {
 	editableProject.value = null;
