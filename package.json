@@ -1,0 +1,19 @@
+{
+	"name": "git-yak",
+	"version": "2.0.0",
+	"description": "Web-based GUI for Git.",
+	"license": "MIT",
+	"type": "module",
+	"private": true,
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"client": "yarn workspace @git-yak/client",
+		"server": "yarn workspace @git-yak/server",
+		"dev": "concurrently \"yarn workspace @git-yak/client dev\" \"yarn workspace @git-yak/server dev\""
+	},
+	"devDependencies": {
+		"concurrently": "^9.1.2"
+	}
+}
