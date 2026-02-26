@@ -144,7 +144,7 @@ watch(() => currentProject.value, refresh);
 		top: 0;
 		left: 0;
 		width: 180px;
-		pointer-events: none;
+		z-index: 1;
 	}
 
 	&__graph-col {

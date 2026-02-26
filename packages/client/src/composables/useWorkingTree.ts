@@ -62,7 +62,7 @@ export function useWorkingTree() {
 	const {callGit, stageFile: gitStageFile, stageAll: gitStageAll, unstageFile: gitUnstageFile, unstageAll: gitUnstageAll, discardFile: gitDiscardFile} = useGit();
 
 	const hasChanges = computed(
-		() => status.value.staged.length > 0 || status.value.unstaged.length > 0,
+		() => status.value.staged.length || status.value.unstaged.length,
 	);
 
 	const stagedCount = computed(() => status.value.staged.length);

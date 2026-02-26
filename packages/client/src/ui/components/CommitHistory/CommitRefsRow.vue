@@ -2,7 +2,7 @@
 	<div class="commit-refs-row" :style="{height: ROW_HEIGHT + 'px'}">
 		<!-- Horizontal connector line -->
 		<svg
-			v-if="displayRefs.length > 0 && !commit.isStash"
+			v-if="displayRefs.length && !commit.isStash"
 			class="row-line-svg"
 			width="100%"
 			:height="ROW_HEIGHT"
@@ -19,7 +19,7 @@
 		</svg>
 
 		<div
-			v-if="displayRefs.length > 0"
+			v-if="displayRefs.length"
 			class="tags-wrapper"
 			:class="{'tags-wrapper--expanded': expanded}"
 			@mouseenter="expanded = true"
@@ -37,7 +37,7 @@
 			</div>
 
 			<div
-				v-if="!expanded && overflowCount > 0"
+				v-if="!expanded && overflowCount"
 				class="ref-tag ref-tag--overflow"
 				:style="{backgroundColor: tagColor}"
 				:title="`${overflowCount} more`"
@@ -50,10 +50,10 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
-import type {ICommit} from '@/domain';
 import {EReferenceType} from '@/domain';
 import Icon from '@/ui/components/Icon.vue';
 import {getGraphColor} from './graphColors';
+import type {ICommit} from '@/domain';
 
 const ROW_HEIGHT = 28;
 const LINE_Y = 9;
@@ -103,15 +103,17 @@ function getRefIcon(type: EReferenceType): string {
 <style scoped lang="scss">
 .commit-refs-row {
 	position: relative;
-	overflow: hidden;
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
 }
 
 .row-line-svg {
 	position: absolute;
 	top: 0;
 	left: 0;
-	pointer-events: none;
 	width: 100%;
+	pointer-events: none;
 }
 
 .tags-wrapper {
@@ -121,16 +123,15 @@ function getRefIcon(type: EReferenceType): string {
 	align-items: center;
 	gap: 3px;
 	padding: 0 6px;
-	height: 100%;
+	width: 100%;
 	overflow: hidden;
-	margin-top: -5px;
+	cursor: pointer;
+	margin-top: -10px;
 
 	&--expanded {
 		flex-direction: column;
 		align-items: flex-start;
-		justify-content: center;
 		overflow: visible;
-		background: #0d0f11;
 		z-index: 10;
 	}
 }
@@ -148,6 +149,7 @@ function getRefIcon(type: EReferenceType): string {
 	flex-shrink: 0;
 	cursor: default;
 	opacity: 0.9;
+	cursor: pointer;
 
 	&--overflow {
 		opacity: 0.65;

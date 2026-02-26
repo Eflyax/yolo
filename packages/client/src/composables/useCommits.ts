@@ -172,7 +172,7 @@ export function useCommits() {
 			'-z',
 			`--pretty=format:${LOG_FORMAT}`,
 			'--date=format-local:%Y-%m-%d %H:%M',
-			...(limit > 0 ? [`--max-count=${limit}`] : []),
+			...(limit ? [`--max-count=${limit}`] : []),
 			'--date-order',
 		);
 
