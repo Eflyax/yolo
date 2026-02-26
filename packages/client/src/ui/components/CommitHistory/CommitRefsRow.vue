@@ -2,7 +2,7 @@
 	<div class="commit-refs-row" :style="{height: ROW_HEIGHT + 'px'}">
 		<!-- Horizontal connector line -->
 		<svg
-			v-if="displayRefs.length && !commit.isStash"
+			v-if="mergedRefs.length && !commit.isStash"
 			class="row-line-svg"
 			width="100%"
 			:height="ROW_HEIGHT"
@@ -18,8 +18,9 @@
 			/>
 		</svg>
 
+		<!-- Reference badges -->
 		<div
-			v-if="displayRefs.length"
+			v-if="mergedRefs.length"
 			class="tags-wrapper"
 			:class="{'tags-wrapper--expanded': expanded}"
 			@mouseenter="expanded = true"
@@ -30,14 +31,40 @@
 				:key="ref.id"
 				class="ref-tag"
 				:style="{backgroundColor: tagColor}"
-				:title="ref.name"
+				:title="getTitle(ref)"
 			>
-				<Icon :name="getRefIcon(ref.type)" class="ref-icon" />
+				<!-- Branch: ikony local + remote -->
+				<template v-if="ref.isBranch">
+					<div class="ref-icons">
+						<Icon name="mdi-source-branch" class="ref-icon" />
+						<Icon
+							v-if="ref.isLocal"
+							name="mdi-laptop"
+							class="ref-icon"
+							title="Local"
+						/>
+						<Icon
+							v-if="ref.remotes.length"
+							name="mdi-cloud-outline"
+							class="ref-icon"
+							:title="`Remotes: ${ref.remotes.join(', ')}`"
+						/>
+					</div>
+				</template>
+
+				<!-- Tag a ostatní -->
+				<template v-else>
+					<div class="ref-icons">
+						<Icon name="mdi-tag-outline" class="ref-icon" />
+					</div>
+				</template>
+
 				<span class="ref-name">{{ ref.name }}</span>
 			</div>
 
+			<!-- Overflow badge -->
 			<div
-				v-if="!expanded && overflowCount"
+				v-if="!expanded && overflowCount > 0"
 				class="ref-tag ref-tag--overflow"
 				:style="{backgroundColor: tagColor}"
 				:title="`${overflowCount} more`"
@@ -50,10 +77,19 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
+import type {IReference} from '@/domain';
 import {EReferenceType} from '@/domain';
 import Icon from '@/ui/components/Icon.vue';
 import {getGraphColor} from './graphColors';
 import type {ICommit} from '@/domain';
+
+interface IMergedRef {
+	id: string;
+	name: string;
+	isBranch: boolean;
+	isLocal: boolean;
+	remotes: Array<string>;
+}
 
 const ROW_HEIGHT = 28;
 const LINE_Y = 9;
@@ -67,14 +103,62 @@ const props = defineProps<{
 
 const expanded = ref(false);
 
-// Filter out stash and HEAD type refs (HEAD is encoded in isHead flag)
-const displayRefs = computed(() =>
-	(props.commit.references ?? []).filter(
+const mergedRefs = computed((): IMergedRef[] => {
+	const refs = (props.commit.references ?? []).filter(
 		r => r.type !== EReferenceType.Stash && r.type !== EReferenceType.Head,
-	),
-);
+	);
 
-// Whether this commit is the current HEAD (has a HEAD reference)
+	const branchRefs = refs.filter(
+		r => r.type === EReferenceType.Branch || r.type === EReferenceType.RemoteBranch,
+	);
+	const otherRefs = refs.filter(
+		r => r.type !== EReferenceType.Branch && r.type !== EReferenceType.RemoteBranch,
+	);
+
+	const grouped = new Map<string, {local: IReference | null; remotes: IReference[]}>();
+
+	for (const r of branchRefs) {
+		const key = r.type === EReferenceType.Branch
+			? r.name
+			: r.name.split('/').slice(1).join('/');
+
+		if (!grouped.has(key)) {
+			grouped.set(key, {local: null, remotes: []});
+		}
+
+		const g = grouped.get(key)!;
+
+		if (r.type === EReferenceType.Branch) {
+			g.local = r;
+		}
+		else {
+			g.remotes.push(r);
+		}
+	}
+
+	const mergedBranches: IMergedRef[] = [];
+
+	for (const [key, g] of grouped) {
+		mergedBranches.push({
+			id: `branch:${key}`,
+			name: key,
+			isBranch: true,
+			isLocal: g.local !== null,
+			remotes: g.remotes.map(r => r.name.split('/')[0]!),
+		});
+	}
+
+	const otherMerged: IMergedRef[] = otherRefs.map(r => ({
+		id: r.id,
+		name: r.name,
+		isBranch: false,
+		isLocal: false,
+		remotes: [],
+	}));
+
+	return [...mergedBranches, ...otherMerged];
+});
+
 const isHead = computed(() =>
 	(props.commit.references ?? []).some(r => r.type === EReferenceType.Head),
 );
@@ -82,21 +166,28 @@ const isHead = computed(() =>
 const lineColor = computed(() => getGraphColor(props.commit.level ?? 0));
 const tagColor = computed(() => getGraphColor(props.commit.level ?? 0));
 
-// Show only first ref when collapsed, all when expanded
 const shownRefs = computed(() =>
-	expanded.value ? displayRefs.value : displayRefs.value.slice(0, 1),
+	expanded.value ? mergedRefs.value : mergedRefs.value.slice(0, 1),
 );
 
-// Number of hidden refs (not counting the first one shown)
-const overflowCount = computed(() => displayRefs.value.length - 1);
+const overflowCount = computed(() => mergedRefs.value.length - 1);
 
-function getRefIcon(type: EReferenceType): string {
-	switch (type) {
-		case EReferenceType.Branch: return 'mdi-source-branch';
-		case EReferenceType.RemoteBranch: return 'mdi-cloud-outline';
-		case EReferenceType.Tag: return 'mdi-tag-outline';
-		default: return 'mdi-label-outline';
+function getTitle(ref: IMergedRef): string {
+	if (!ref.isBranch) {
+		return ref.name;
 	}
+
+	const parts: string[] = ['Branch'];
+
+	if (ref.isLocal) {
+		parts.push('local');
+	}
+
+	if (ref.remotes.length) {
+		parts.push(`remotes: ${ref.remotes.join(', ')}`);
+	}
+
+	return `${ref.name} (${parts.slice(1).join(', ')})`;
 }
 </script>
 
@@ -139,7 +230,7 @@ function getRefIcon(type: EReferenceType): string {
 .ref-tag {
 	display: inline-flex;
 	align-items: center;
-	gap: 3px;
+	gap: 4px;
 	padding: 1px 5px;
 	border-radius: 3px;
 	font-size: 10.5px;
@@ -147,15 +238,21 @@ function getRefIcon(type: EReferenceType): string {
 	color: #0d0f11;
 	white-space: nowrap;
 	flex-shrink: 0;
-	cursor: default;
-	opacity: 0.9;
 	cursor: pointer;
+	opacity: 0.9;
 
 	&--overflow {
 		opacity: 0.65;
 		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.55);
 		color: #fff;
 	}
+}
+
+.ref-icons {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex-shrink: 0;
 }
 
 .ref-icon {
@@ -165,7 +262,7 @@ function getRefIcon(type: EReferenceType): string {
 }
 
 .ref-name {
-	max-width: 120px;
+	max-width: 110px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

@@ -38,6 +38,17 @@
 				:stroke="'#0d0f11'"
 				:stroke-width="LINE_WIDTH"
 			/>
+
+			<line
+				v-if="commit.references?.length && !commit.isStash"
+				:x1="PADDING_LEFT + (commit.level ?? 0) * X_STEP"
+				:y1="(PADDING_TOP + (commit.index ?? 0) * Y_STEP)- ROW_MARGIN"
+				:x2="PADDING_LEFT + (commit.level ?? 0) * X_STEP - (CIRCLE_R * 3 * (commit.level ?? 1))"
+			 	:y2="(PADDING_TOP + (commit.index ?? 0) * Y_STEP) - ROW_MARGIN"
+				:stroke="getColor(commit.level ?? 0)"
+				:stroke-width="2"
+			/>
+				<!-- :stroke-width="commit.hash == current_head ? CONFIG.LINE_WIDTH * 2: CONFIG.LINE_WIDTH / 2" -->
 		</g>
 	</svg>
 </template>
