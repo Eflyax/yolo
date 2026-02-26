@@ -5,7 +5,7 @@
 		:height="svgHeight"
 	>
 		<!-- Connection paths -->
-		<g v-for="commit in commits" :key="'path-' + commit.hash">
+		 <g v-for="commit in commits" :key="'path-' + commit.hash">
 			<template v-for="parentHash in commit.parents" :key="parentHash">
 				<path
 					v-if="commitMap.has(parentHash)"
@@ -14,7 +14,7 @@
 					:stroke-width="LINE_WIDTH"
 					fill="none"
 					opacity="0.85"
-					:stroke-dasharray="commit.isStash ? '3 2' : undefined"
+					:stroke-dasharray="commit.isStash || commit.hash === 'WORKING_TREE' ? '3 2' : undefined"
 				/>
 			</template>
 		</g>
@@ -30,12 +30,35 @@
 				:fill-opacity="selectedHash === commit.hash ? 0.18 : 0.06"
 			/>
 
+			<g v-if="commit.isStash">
+				<rect
+					:x="PADDING_LEFT + (commit.level ?? 0) * X_STEP - CIRCLE_R"
+					:y="PADDING_TOP + (commit.index ?? 0) * Y_STEP - ROW_MARGIN - CIRCLE_R"
+					:width="CIRCLE_R * 2"
+					:height="CIRCLE_R * 2"
+					fill="none"
+					:stroke="getColor(commit.level ?? 0)"
+					:stroke-width="LINE_WIDTH"
+					stroke-dasharray="3 2"
+				/>
+				<ArchiveIcon
+					:x="PADDING_LEFT + (commit.level ?? 0) * X_STEP - CIRCLE_R"
+					:y="PADDING_TOP + (commit.index ?? 0) * Y_STEP - ROW_MARGIN - CIRCLE_R"
+					:width="CIRCLE_R * 2"
+					:height="CIRCLE_R * 2"
+					:fill="getColor(commit.level ?? 0)"
+				/>
+			</g>
+
+			<!-- WORKING_TREE: outline circle, dashed; regular commit: filled circle -->
 			<circle
+				v-else
 				:cx="PADDING_LEFT + (commit.level ?? 0) * X_STEP"
 				:cy="PADDING_TOP + (commit.index ?? 0) * Y_STEP - ROW_MARGIN"
 				:r="commit.parents.length > 1 ? CIRCLE_R / 2 : CIRCLE_R"
-				:fill="getColor(commit.level ?? 0)"
-				:stroke="'#0d0f11'"
+				:fill="commit.hash === 'WORKING_TREE' ? 'none' : getColor(commit.level ?? 0)"
+				:stroke="commit.hash === 'WORKING_TREE' ? getColor(commit.level ?? 0) : '#0d0f11'"
+				:stroke-dasharray="commit.hash === 'WORKING_TREE' ? '3 2' : undefined"
 				:stroke-width="LINE_WIDTH"
 			/>
 
@@ -48,7 +71,6 @@
 				:stroke="getColor(commit.level ?? 0)"
 				:stroke-width="2"
 			/>
-				<!-- :stroke-width="commit.hash == current_head ? CONFIG.LINE_WIDTH * 2: CONFIG.LINE_WIDTH / 2" -->
 		</g>
 	</svg>
 </template>
@@ -57,6 +79,7 @@
 import {computed} from 'vue';
 import type {ICommit} from '@/domain';
 import {getGraphColor} from './graphColors';
+import ArchiveIcon from '@/assets/svg/archive-outline.svg?component';
 
 const X_STEP = 20;
 const Y_STEP = 28;

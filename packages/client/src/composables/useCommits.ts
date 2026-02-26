@@ -1,7 +1,8 @@
 import {ref, computed, readonly} from 'vue';
-import type {ICommit, IReference} from '@/domain';
+import type {ICommit, IReference, IStash} from '@/domain';
 import {EReferenceType} from '@/domain';
 import {useGit} from './useGit';
+import {useStash} from './useStash';
 
 const FIELD_SEP = '\x06';
 const COMMIT_LIMIT = 200;
@@ -51,6 +52,44 @@ function parseRawCommit(raw: string): Partial<ICommit> {
 	return result;
 }
 
+function mapStashes(stashes: readonly IStash[]): ICommit[] {
+	return [...stashes]
+		.sort((a, b) => {
+			const numA = parseInt(a.id.match(/\{(\d+)\}/)?.[1] ?? '0', 10);
+			const numB = parseInt(b.id.match(/\{(\d+)\}/)?.[1] ?? '0', 10);
+
+			return numA - numB;
+		})
+		.map(stash => {
+			const parentHash = stash.parentHash.split(' ')[0] ?? '';
+
+			const subject = stash.message.includes(':')
+				? stash.message.split(':').slice(1).join(':').trim()
+				: stash.message;
+
+			return {
+				hash: stash.hash,
+				hashAbbr: stash.hash.slice(0, 7),
+				parents: [parentHash] as unknown as ReadonlyArray<string>,
+				subject,
+				body: '',
+				authorName: 'Stash',
+				authorEmail: '',
+				authorDate: '',
+				committerName: 'Stash',
+				committerEmail: '',
+				committerDate: '',
+				isStash: true,
+				references: [{
+					type: EReferenceType.Stash,
+					name: stash.id,
+					id: stash.id,
+					hash: stash.hash,
+				}],
+			} as ICommit;
+		});
+}
+
 function buildGraph(rawCommits: ICommit[]): void {
 	const occupiedLevels: Record<number, ICommit> = {};
 	const remainingParents: Record<string, Set<string>> = {};
@@ -60,12 +99,25 @@ function buildGraph(rawCommits: ICommit[]): void {
 		commit.index = i;
 		commit.hashAbbr = commit.hash.slice(0, 7);
 
-		const parents = (commit.parents as unknown as string)
-			? (commit.parents as unknown as string).split(' ').filter(Boolean)
-			: [];
+		const
+			rawParents = commit.parents;
+
+		let parents: string[];
+
+		if (Array.isArray(rawParents)) {
+			parents = rawParents as string[];
+		}
+		else {
+			const raw = rawParents as unknown as string;
+
+			parents = raw ? raw.split(' ').filter(Boolean) : [];
+		}
 
 		commit.parents = parents;
-		commit.references = referencesByHash.value[commit.hash] ?? [];
+
+		if (!commit.isStash && commit.hash !== 'WORKING_TREE') {
+			commit.references = referencesByHash.value[commit.hash] ?? [];
+		}
 
 		for (const parentHash of parents) {
 			children[parentHash] ??= [];
@@ -150,6 +202,7 @@ function parseReferences(refOutput: string): Record<string, IReference[]> {
 
 export function useCommits() {
 	const {callGit} = useGit();
+	const {stashes} = useStash();
 
 	async function loadReferences(): Promise<void> {
 		const output = await callGit(
@@ -168,6 +221,7 @@ export function useCommits() {
 
 		const log = await callGit(
 			'log',
+			'--exclude=refs/stash',
 			'--all',
 			'-z',
 			`--pretty=format:${LOG_FORMAT}`,
@@ -176,16 +230,46 @@ export function useCommits() {
 			'--date-order',
 		);
 
-		const rawCommits = log
+		const regularCommits = log
 			.split('\0')
 			.filter(Boolean)
 			.map(row => parseRawCommit(row) as ICommit);
+
+		let headHash = '';
+
+		try {
+			headHash = (await callGit('rev-parse', 'HEAD')).trim();
+		}
+		catch {
+
+		}
+
+		const workingTree: ICommit = {
+			hash: 'WORKING_TREE',
+			hashAbbr: 'WORKING',
+			parents: (headHash ? [headHash] : []) as unknown as ReadonlyArray<string>,
+			subject: 'Working Tree',
+			body: '',
+			authorName: '',
+			authorEmail: '',
+			authorDate: '',
+			committerName: '',
+			committerEmail: '',
+			committerDate: '',
+			references: [],
+		};
+
+		const rawCommits: ICommit[] = [
+			workingTree,
+			...mapStashes(stashes.value),
+			...regularCommits,
+		];
 
 		buildGraph(rawCommits);
 
 		commits.value = rawCommits;
 		currentLimit.value = limit;
-		allLoaded.value = rawCommits.length < limit;
+		allLoaded.value = regularCommits.length < limit;
 
 		selectedHashes.value = selectedHashes.value.filter(
 			h => commitMap.value.has(h),

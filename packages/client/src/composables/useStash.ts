@@ -5,11 +5,13 @@ import {useGit} from './useGit';
 const stashes = ref<IStash[]>([]);
 
 function parseStashes(output: string): IStash[] {
+
+	console.log({parseStashes: output});
+
 	return output
 		.split('\n')
 		.filter(Boolean)
 		.map(line => {
-			// Format: "stash@{0}|abc1234|parentHash|WIP on master: message"
 			const [id, hash, parentHash, ...messageParts] = line.split('|');
 
 			return {
