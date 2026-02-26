@@ -1,4 +1,11 @@
 import {serve} from 'bun';
+import {ENetworkCommand} from './types';
+import type {IWsMessage} from './types';
+import * as GitCall from './commands/GitCall';
+import * as ReadFile from './commands/ReadFile';
+import * as WriteFile from './commands/WriteFile';
+import * as BrowseFiles from './commands/BrowseFiles';
+import * as SshAgentInit from './commands/SshAgentInit';
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -17,11 +24,57 @@ serve({
 			ws.send(JSON.stringify({type: 'hello', message: 'Git Yak server ready'}));
 		},
 		async message(ws, message) {
-			// command routing will be added in later phases
-			console.log('[ws] message received:', message);
+			let data: IWsMessage | undefined;
+
+			try {
+				data = JSON.parse(message.toString()) as IWsMessage;
+
+				const {command} = data;
+
+				switch (command) {
+					case ENetworkCommand.GitCall:
+						await GitCall.run(ws, data);
+						break;
+
+					case ENetworkCommand.ReadFile:
+						await ReadFile.run(ws, data);
+						break;
+
+					case ENetworkCommand.WriteFile:
+						await WriteFile.run(ws, data);
+						break;
+
+					case ENetworkCommand.BrowseFiles:
+						await BrowseFiles.run(ws, data);
+						break;
+
+					case ENetworkCommand.SshAgentInit:
+						await SshAgentInit.run(ws, data);
+						break;
+
+					default:
+						ws.send(JSON.stringify({
+							requestId: data.requestId,
+							status: 'error',
+							message: `Unknown command: ${command}`,
+						}));
+				}
+			}
+			catch (e: unknown) {
+				const message = e instanceof Error ? e.message : 'Internal server error';
+				console.error('[ws] error processing message:', message);
+
+				ws.send(JSON.stringify({
+					requestId: data?.requestId,
+					status: 'error',
+					message: 'Failed to process message',
+					details: message,
+				}));
+			}
 		},
 		close(ws) {
 			console.log('[ws] client disconnected');
+			SshAgentInit.destroyAgent(ws);
 		},
 	},
 });
