@@ -11,8 +11,6 @@ function parseBranches(output: string): {branches: IBranch[]; current: IBranch |
 	let current: IBranch | null = null;
 
 	for (const line of lines) {
-		// Format: * master abc1234 [origin/master] commit message
-		// Format:   feature abc1234 commit message
 		const isCurrent = line.startsWith('* ');
 		const cleaned = line.replace(/^[* ] /, '');
 		const parts = cleaned.split(/\s+/);

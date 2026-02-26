@@ -14,7 +14,7 @@
 				x2="100%"
 				:y2="LINE_Y"
 				:stroke="lineColor"
-				:stroke-width="isHead ? LINE_WIDTH_THICK : LINE_WIDTH_THIN"
+				:stroke-width="shownRefs.some(ref => isActive(ref)) ? LINE_WIDTH_THICK : LINE_WIDTH_THIN"
 			/>
 		</svg>
 
@@ -30,6 +30,7 @@
 				v-for="ref in shownRefs"
 				:key="ref.id"
 				class="ref-tag"
+				:class="{'ref-tag--active': isActive(ref)}"
 				:style="{backgroundColor: tagColor}"
 				:title="getTitle(ref)"
 			>
@@ -82,6 +83,9 @@ import {EReferenceType} from '@/domain';
 import Icon from '@/ui/components/Icon.vue';
 import {getGraphColor} from './graphColors';
 import type {ICommit} from '@/domain';
+import {useBranches} from '@/composables/useBranches';
+
+const {currentBranch} = useBranches();
 
 interface IMergedRef {
 	id: string;
@@ -94,7 +98,7 @@ interface IMergedRef {
 const ROW_HEIGHT = 28;
 const LINE_Y = 9;
 const PADDING_LEFT = 12;
-const LINE_WIDTH_THICK = 6;
+const LINE_WIDTH_THICK = 4;
 const LINE_WIDTH_THIN = 1.5;
 
 const props = defineProps<{
@@ -172,6 +176,10 @@ const shownRefs = computed(() =>
 
 const overflowCount = computed(() => mergedRefs.value.length - 1);
 
+function isActive(ref: IMergedRef): boolean {
+	return ref.isBranch && currentBranch.value?.name === ref.name;
+}
+
 function getTitle(ref: IMergedRef): string {
 	if (!ref.isBranch) {
 		return ref.name;
@@ -233,18 +241,31 @@ function getTitle(ref: IMergedRef): string {
 	gap: 4px;
 	padding: 1px 5px;
 	border-radius: 3px;
-	font-size: 10.5px;
+	font-size: 12px;
 	font-weight: 600;
-	color: #0d0f11;
+	color: #c9d1d9;
 	white-space: nowrap;
 	flex-shrink: 0;
 	cursor: pointer;
-	opacity: 0.9;
+	box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.55);
+
+	&--active {
+		box-shadow: none;
+		color: #fff;
+
+		svg {
+			fill: #fff;
+		}
+	}
 
 	&--overflow {
-		opacity: 0.65;
 		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.55);
 		color: #fff;
+	}
+
+	svg {
+		width: 15px;
+		height: 15px;
 	}
 }
 

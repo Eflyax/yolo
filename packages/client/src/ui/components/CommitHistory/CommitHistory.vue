@@ -63,6 +63,7 @@ import Icon from '@/ui/components/Icon.vue';
 import {useCommits} from '@/composables/useCommits';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useStash} from '@/composables/useStash';
+import {useBranches} from '@/composables/useBranches';
 import {useProject} from '@/composables/useProject';
 import {useLayout} from '@/composables/useLayout';
 import type {ICommit} from '@/domain';
@@ -74,6 +75,7 @@ const message = useMessage();
 const {commits, selectedHashes, selectCommit, loadCommits} = useCommits();
 const {loadStatus} = useWorkingTree();
 const {loadStashes} = useStash();
+const {loadBranches} = useBranches();
 const {currentProject} = useProject();
 const {loading} = useLayout();
 
@@ -100,6 +102,7 @@ async function refresh(): Promise<void> {
 		await Promise.all([
 			loadStatus(),
 			loadStashes(),
+			loadBranches(),
 			loadCommits(),
 		]);
 	}
