@@ -56,9 +56,13 @@ import ProjectManager from './ProjectManager/ProjectManager.vue';
 
 const activeDiffFile = ref<string | null>(null);
 const {currentProject, openLastOpenProject} = useProject();
-const {selectedHashes} = useCommits();
+const {selectedHashes, selectCommit} = useCommits();
 
-const isWorkingTreeSelected = computed(() => selectedHashes.value[0] === 'WORKING_TREE');
+const isWorkingTreeSelected = computed(() => selectedHashes.value[0] === 'WORKING_TREE' || !selectedHashes.value);
+
+if (!selectedHashes.value.length) {
+	selectCommit('WORKING_TREE');
+}
 
 onMounted(() => {
 	openLastOpenProject();

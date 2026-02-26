@@ -16,7 +16,6 @@
 					opacity="0.85"
 					:stroke-dasharray="commit.isStash || commit.hash === 'WORKING_TREE' ? '3 2' : undefined"
 				/>
-				<!-- todo - load -->
 			</template>
 		</g>
 
@@ -28,7 +27,7 @@
 				:width="svgWidth - (commit.level ?? 0) * X_STEP - 1"
 				:height="Y_STEP - ROW_MARGIN"
 				:fill="getColor(commit.level ?? 0)"
-				:fill-opacity="selectedHash === commit.hash ? 0.18 : 0.06"
+				:fill-opacity="selectedHash === commit.hash ? 0.30 : 0.06"
 			/>
 
 			<g v-if="commit.isStash">
@@ -81,6 +80,7 @@ import {computed} from 'vue';
 import type {ICommit} from '@/domain';
 import {getGraphColor} from './graphColors';
 import ArchiveIcon from '@/assets/svg/archive-outline.svg?component';
+import {useCommits} from '@/composables/useCommits';
 
 const X_STEP = 20;
 const Y_STEP = 28;
@@ -95,6 +95,8 @@ const props = defineProps<{
 	commits: readonly ICommit[]
 	selectedHash?: string
 }>();
+
+const {selectedHashes} = useCommits();
 
 const commitMap = computed(() => {
 	const map = new Map<string, Readonly<ICommit>>();
