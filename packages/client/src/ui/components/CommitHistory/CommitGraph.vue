@@ -24,7 +24,7 @@
 			<rect
 				:x="PADDING_LEFT + (commit.level ?? 0) * X_STEP - 1"
 				:y="(commit.index ?? 0) * Y_STEP"
-				:width="svgWidth"
+				:width="svgWidth - (commit.level ?? 0) * X_STEP - 1"
 				:height="Y_STEP - ROW_MARGIN"
 				:fill="getColor(commit.level ?? 0)"
 				:fill-opacity="selectedHash === commit.hash ? 0.18 : 0.06"
@@ -61,7 +61,7 @@ import {getGraphColor} from './graphColors';
 const X_STEP = 20;
 const Y_STEP = 28;
 const PADDING_LEFT = 12;
-const PADDING_TOP = 14;
+const PADDING_TOP = 18;
 const CIRCLE_R = 10;
 const LINE_WIDTH = 3;
 const ROW_MARGIN = 5;

@@ -2,7 +2,10 @@
 	<div
 		class="commit-row"
 		:class="{'commit-row--selected': isSelected}"
-		:style="{height: ROW_HEIGHT + 'px'}"
+		:style="{
+			height: (ROW_HEIGHT - 4) + 'px',
+			borderLeft: '2px solid ' + getGraphColor(commit.level ?? 0),
+		}"
 		@click="emit('select')"
 		@contextmenu.prevent="emit('contextmenu', $event)"
 	>
@@ -22,6 +25,7 @@
 <script setup lang="ts">
 import {computed} from 'vue';
 import type {ICommit} from '@/domain';
+import {getGraphColor} from './graphColors';
 
 const ROW_HEIGHT = 28;
 
@@ -67,18 +71,17 @@ void _authorInitial;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 0 10px 0 8px;
+	padding: 0 8px 0 6px;
 	cursor: pointer;
-	transition: background-color 0.1s;
-	border-bottom: 1px solid transparent;
+	margin-bottom: 4px;
+	background-color: #0d0f11;
 
 	&:hover {
-		background-color: rgba(255, 255, 255, 0.04);
+		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.4);
 	}
 
 	&--selected {
-		background-color: rgba(111, 158, 248, 0.12) !important;
-		border-bottom-color: rgba(111, 158, 248, 0.08);
+		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.8);
 	}
 
 	&__body {
@@ -86,7 +89,9 @@ void _authorInitial;
 		display: flex;
 		align-items: center;
 		gap: 6px;
+		padding: 4px 0;
 		overflow: hidden;
+		padding-left: 5px;
 	}
 
 	&__message {

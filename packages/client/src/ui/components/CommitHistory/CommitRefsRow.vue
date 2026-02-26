@@ -96,7 +96,7 @@ interface IMergedRef {
 }
 
 const ROW_HEIGHT = 28;
-const LINE_Y = 9;
+const LINE_Y = 13;
 const PADDING_LEFT = 12;
 const LINE_WIDTH_THICK = 4;
 const LINE_WIDTH_THIN = 1.5;
@@ -163,10 +163,6 @@ const mergedRefs = computed((): IMergedRef[] => {
 	return [...mergedBranches, ...otherMerged];
 });
 
-const isHead = computed(() =>
-	(props.commit.references ?? []).some(r => r.type === EReferenceType.Head),
-);
-
 const lineColor = computed(() => getGraphColor(props.commit.level ?? 0));
 const tagColor = computed(() => getGraphColor(props.commit.level ?? 0));
 
@@ -225,7 +221,7 @@ function getTitle(ref: IMergedRef): string {
 	width: 100%;
 	overflow: hidden;
 	cursor: pointer;
-	margin-top: -10px;
+	margin-top: -5px;
 
 	&--expanded {
 		flex-direction: column;
