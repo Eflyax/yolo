@@ -1,54 +1,54 @@
 <template>
 	<div class="commit-details">
-		<template v-if="commit">
+		<template v-if="selectedCommit">
 			<!-- Hash -->
 			<div class="commit-details__hash-row">
-				<span class="commit-details__hash">{{ commit.hash_abbr }}</span>
-				<span class="commit-details__hash-full">commits: {{ commit.parents.length }}</span>
+				<span class="commit-details__hash">{{ selectedCommit.hashAbbr }}</span>
+				<span class="commit-details__hash-full">parents: {{ selectedCommit.parents.length }}</span>
 			</div>
 
 			<!-- Title -->
-			<div class="commit-details__title">{{ commit.subject }}</div>
+			<div class="commit-details__title">{{ selectedCommit.subject }}</div>
 
 			<!-- Author -->
 			<div class="commit-details__author">
 				<div
 					class="commit-details__avatar"
-					:style="{background: commit.authorColor}"
+					:style="{background: authorColor}"
 				>
-					{{ commit.author_name.charAt(0) }}
+					{{ avatarLetter }}
 				</div>
 				<div class="commit-details__author-info">
-					<span class="commit-details__author-name">{{ commit.author_name }}</span>
-					<span class="commit-details__author-date">{{ commit.author_date }}</span>
+					<span class="commit-details__author-name">{{ selectedCommit.authorName || 'Working Tree' }}</span>
+					<span class="commit-details__author-date">{{ selectedCommit.authorDate }}</span>
 				</div>
 			</div>
 
-			<!-- Parent -->
-			<div class="commit-details__meta-row">
+			<!-- Parent hashes -->
+			<div class="commit-details__meta-row" v-if="selectedCommit.parents.length">
+				<CommitFileStats
+					:A="filesStatuses[EFileStatus.Added]"
+					:M="filesStatuses[EFileStatus.Modified]"
+					:D="filesStatuses[EFileStatus.Deleted]"
+					:R="filesStatuses[EFileStatus.Renamed]"
+				/>
+
 				<span class="commit-details__meta-label">Parent</span>
 				<span
-					v-for="p in commit.parents"
-					:key="p"
+					v-for="p in selectedCommit.parents"
+					:key="String(p)"
 					class="commit-details__parent-hash"
-				>{{ p.slice(0, 7) }}</span>
+				>{{ String(p).slice(0, 7) }}</span>
 			</div>
 
-			<!-- Stats -->
-			<div class="commit-details__stats">
-				<span class="commit-details__stat">
-					<span class="commit-details__stat-count">{{ changedFiles.length }}</span>
-					modified
-				</span>
-			</div>
 
 			<!-- File list -->
 			<div class="commit-details__files">
 				<ChangedFileItem
-					v-for="file in changedFiles"
+					v-for="file in commitFiles ?? []"
 					:key="file.path"
 					:path="file.path"
-					:status="file.status"
+					:status="(file.status as EFileStatus)"
 					@open="emit('openDiff', file.path)"
 				/>
 			</div>
@@ -61,41 +61,49 @@
 </template>
 
 <script setup lang="ts">
+import {computed, watch} from 'vue';
 import ChangedFileItem from './ChangedFileItem.vue';
-
-interface CommitDetail {
-	hash_abbr: string
-	subject: string
-	parents: string[]
-	author_name: string
-	author_date: string
-	authorColor: string
-}
-
-interface ChangedFile {
-	path: string
-	status: 'A' | 'M' | 'D' | 'R'
-}
+import CommitFileStats from '@/ui/components/CommitFileStats.vue';
+import {useCommits} from '@/composables/useCommits';
+import {getGraphColor} from '@/ui/components/CommitHistory/graphColors';
+import {EFileStatus} from '@/domain/enums';
 
 const emit = defineEmits<{
 	openDiff: [filePath: string]
 }>();
 
-const commit: CommitDetail = {
-	hash_abbr: '36,753',
-	subject: 'Merge branch \'hotfix/FOO-219\' into \'master\'',
-	parents: ['a1b2c3d4e5f6', 'b2c3d4e5f6a7'],
-	author_name: 'Jakub Záruba',
-	author_date: 'Released 20.01.2026 at 9:23',
-	authorColor: '#6f9ef8',
-};
+const {selectedHashes, commitMap, commitFiles, loadCommitDetails} = useCommits();
 
-const changedFiles: ChangedFile[] = [
-	{path: 'src/orchestration/Orchestration.ts', status: 'M'},
-	{path: 'src/orchestration/factors/factors/HandlerSanctioned.ts', status: 'M'},
-	{path: 'src/orchestration/factors/factors/HandlerSuspicious.ts', status: 'M'},
-	{path: 'src/orchestration/types.ts', status: 'M'},
-];
+const selectedCommit = computed(() => {
+	const hash = selectedHashes.value[0];
+
+	return hash ? commitMap.value.get(hash) : undefined;
+});
+
+const filesStatuses = computed(() => {
+	return {
+		[EFileStatus.Modified]: commitFiles.value?.filter(file => file.status === EFileStatus.Modified).length ?? 0,
+		[EFileStatus.Added]: commitFiles.value?.filter(file => file.status === EFileStatus.Added).length ?? 0,
+		[EFileStatus.Deleted]: commitFiles.value?.filter(file => file.status === EFileStatus.Deleted).length ?? 0,
+		[EFileStatus.Renamed]: commitFiles.value?.filter(file => file.status === EFileStatus.Renamed).length ?? 0,
+	};
+});
+
+const authorColor = computed(() => getGraphColor(selectedCommit.value?.level ?? 0));
+
+const avatarLetter = computed(() => {
+	const name = selectedCommit.value?.authorName ?? '';
+
+	return name ? name.charAt(0).toUpperCase() : '?';
+});
+
+watch(
+	selectedHashes,
+	(hashes) => {
+		loadCommitDetails(hashes);
+	},
+	{immediate: true},
+);
 </script>
 
 <style scoped lang="scss">
@@ -220,11 +228,6 @@ const changedFiles: ChangedFile[] = [
 	&__stat {
 		font-size: 12px;
 		color: #6b7280;
-	}
-
-	&__stat-count {
-		font-weight: 700;
-		color: #f89b6f;
 	}
 
 	&__tabs {

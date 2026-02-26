@@ -4,9 +4,16 @@ import {EReferenceType} from '@/domain';
 import {useGit} from './useGit';
 import {useStash} from './useStash';
 
+export interface ICommitFile {
+	path: string;
+	status: string;
+	oldPath?: string;
+}
+
 const FIELD_SEP = '\x06';
 const COMMIT_LIMIT = 200;
 const LIMIT_MULTIPLIER = 4;
+const EMPTY_TREE_HASH = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 
 const LOG_FORMAT = [
 	'%H',  // hash
@@ -32,6 +39,7 @@ const selectedHashes = ref<string[]>([]);
 const currentLimit = ref<number>(COMMIT_LIMIT);
 const allLoaded = ref(false);
 const referencesByHash = ref<Record<string, IReference[]>>({});
+const commitFiles = ref<ICommitFile[] | null>(null);
 
 const commitMap = computed(() => {
 	const map = new Map<string, ICommit>();
@@ -162,6 +170,28 @@ function buildGraph(rawCommits: ICommit[]): void {
 			}
 		}
 	}
+}
+
+function parseDiffNameStatus(output: string): ICommitFile[] {
+	const tokens = output.split('\0');
+	const files: ICommitFile[] = [];
+
+	for (let i = 0; i < tokens.length - 1; ++i) {
+		const statusToken = tokens[i] ?? '';
+		const status = statusToken[0] ?? '';
+		const path = tokens[++i] ?? '';
+
+		if (['R', 'C'].includes(status)) {
+			const newPath = tokens[++i] ?? '';
+
+			files.push({status, path: newPath, oldPath: path});
+		}
+		else {
+			files.push({status, path});
+		}
+	}
+
+	return files.filter(f => f.path);
 }
 
 function parseReferences(refOutput: string): Record<string, IReference[]> {
@@ -301,15 +331,58 @@ export function useCommits() {
 		selectedHashes.value = [];
 	}
 
+	async function loadCommitDetails(hashes: readonly string[]): Promise<void> {
+		commitFiles.value = null;
+
+		if (hashes.length === 0) return;
+
+		const firstHash = hashes[0];
+
+		if (!firstHash || firstHash === 'WORKING_TREE') {
+			commitFiles.value = [];
+
+			return;
+		}
+
+		let diffArgs: string[];
+
+		if (hashes.length === 1) {
+			const commit = commitMap.value.get(firstHash);
+			const parents = commit?.parents as string[] | undefined;
+			const parentHash = parents?.[0];
+
+			diffArgs = parentHash
+				? [parentHash, firstHash]
+				: [EMPTY_TREE_HASH, firstHash];
+		}
+		else if (hashes.length === 2) {
+			const h1 = hashes[0] as string;
+			const h2 = hashes[1] as string;
+
+			diffArgs = [h2, h1];
+		}
+		else {
+			commitFiles.value = [];
+
+			return;
+		}
+
+		const output = await callGit('diff', ...diffArgs, '--name-status', '-z');
+
+		commitFiles.value = parseDiffNameStatus(output);
+	}
+
 	return {
 		commits: readonly(commits),
 		selectedHashes: readonly(selectedHashes),
 		commitMap,
+		commitFiles: readonly(commitFiles),
 		allLoaded: readonly(allLoaded),
 		loadCommits,
 		loadMore,
 		selectCommit,
 		toggleCommitSelection,
 		clearSelection,
+		loadCommitDetails,
 	};
 }

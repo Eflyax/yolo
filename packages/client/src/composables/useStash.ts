@@ -5,9 +5,6 @@ import {useGit} from './useGit';
 const stashes = ref<IStash[]>([]);
 
 function parseStashes(output: string): IStash[] {
-
-	console.log({parseStashes: output});
-
 	return output
 		.split('\n')
 		.filter(Boolean)

@@ -6,7 +6,7 @@
 				{{ currentProject.alias }}
 			</span>
 			<span class="toolbar__sep">›</span>
-			<span class="toolbar__branch">master</span>
+			<span class="toolbar__branch">{{ currentBranch?.name }}</span>
 		</template>
 	</span>
 
@@ -38,9 +38,11 @@
 <script setup lang="ts">
 import {NButton} from 'naive-ui';
 import {useProject} from '@/composables/useProject';
+import {useBranches} from '@/composables/useBranches';
 
 const
-	{currentProject} = useProject();
+	{currentProject} = useProject(),
+	{currentBranch} = useBranches();
 
 const
 	actions = [{
@@ -85,6 +87,7 @@ const
 		align-items: center;
 		gap: 5px;
 		font-size: 14px;
+		width: 450px;
 	}
 
 	&__project {

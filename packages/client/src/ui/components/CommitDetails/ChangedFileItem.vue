@@ -15,10 +15,11 @@
 <script setup lang="ts">
 import FileStatus from '../FileStatus.vue';
 import {computed} from 'vue';
+import {EFileStatus} from '@/domain/enums';
 
 const props = defineProps<{
 	path: string
-	status: 'A' | 'M' | 'D' | 'R'
+	status: EFileStatus
 }>();
 
 const emit = defineEmits<{

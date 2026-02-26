@@ -1,42 +1,36 @@
 <template>
 	<span :class="['file-status', `file-status--${status}`]">
 		<Icon
-			v-if="status === 'M'"
+			v-if="status === EFileStatus.Modified"
 			name="mdi-pencil"
 			class="file-status__icon"
 		/>
 		<Icon
-			v-else-if="status === 'A'"
+			v-else-if="status === EFileStatus.Added"
 			name="mdi-plus"
 			class="file-status__icon"
 		/>
 		<Icon
-			v-else-if="status === 'R'"
+			v-else-if="status === EFileStatus.Renamed"
 			name="mdi-swap-horizontal"
 			class="file-status__icon"
 		/>
 		<Icon
-			v-else-if="status === 'D'"
+			v-else-if="status === EFileStatus.Deleted"
 			name="mdi-minus"
 			class="file-status__icon"
 		/>
 	</span>
 </template>
 
-<script lang="ts">
-import {defineComponent} from 'vue';
+<script lang="ts" setup>
 import Icon from './Icon.vue';
+import {EFileStatus} from '@/domain/enums';
 
-export default defineComponent({
-	components: {Icon},
-	props: {
-		status: {
-			type: String,
-			required: true,
-			validator: (value: string) => ['M', 'A', 'R', 'D'].includes(value),
-		},
-	},
-});
+const props = defineProps<{
+	status: EFileStatus
+}>();
+
 </script>
 
 <style lang="scss" scoped>
