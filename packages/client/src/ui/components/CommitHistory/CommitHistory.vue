@@ -1,7 +1,24 @@
 <template>
 	<div class="commit-history">
+		<!-- Loading overlay -->
+		<div v-if="loading && !commits.length" class="commit-history__loading">
+			<n-spin size="small" />
+		</div>
+
+		<!-- Empty state – no project -->
+		<div v-else-if="!currentProject" class="commit-history__empty">
+			<Icon name="mdi-source-repository" />
+			<span>No repository open</span>
+		</div>
+
+		<!-- Empty state – no commits yet -->
+		<div v-else-if="!commits.length && !loading" class="commit-history__empty">
+			<Icon name="mdi-git" />
+			<span>No commits found</span>
+		</div>
+
 		<!-- Graph + rows -->
-		<div class="commit-history__scroll" ref="scrollEl">
+		<div v-else class="commit-history__scroll" ref="scrollEl">
 			<div class="commit-history__content" :style="{height: commits.length * ROW_HEIGHT + 'px'}">
 				<!-- SVG graph overlay -->
 				<div class="commit-history__graph-col">
@@ -18,7 +35,7 @@
 						:key="commit.hash"
 						:commit="commit"
 						:is-selected="selectedHash === commit.hash"
-						@select="selectCommit(commit)"
+						@select="handleSelectCommit(commit)"
 						@contextmenu="onContextMenu(commit, $event)"
 					/>
 				</div>
@@ -28,197 +45,67 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed} from 'vue';
+import {ref, computed, onMounted, watch} from 'vue';
+import {NSpin, useMessage} from 'naive-ui';
 import CommitGraph from './CommitGraph.vue';
 import CommitRow from './CommitRow.vue';
-import type {MockCommit} from './CommitRow.vue';
+import Icon from '@/ui/components/Icon.vue';
+import {useCommits} from '@/composables/useCommits';
+import {useWorkingTree} from '@/composables/useWorkingTree';
+import {useStash} from '@/composables/useStash';
+import {useProject} from '@/composables/useProject';
+import {useLayout} from '@/composables/useLayout';
+import type {ICommit} from '@/domain';
 
 const ROW_HEIGHT = 28;
 
-const selectedHash = ref<string | undefined>('a1b2c3d');
+const message = useMessage();
+const {commits, selectedHashes, selectCommit, loadCommits} = useCommits();
+const {loadStatus} = useWorkingTree();
+const {loadStashes} = useStash();
+const {currentProject} = useProject();
+const {loading} = useLayout();
 
-// Mock data matching the design
-const commits: MockCommit[] = [
-	{
-		hash: 'a1b2c3d4e5f6a7b8',
-		hash_abbr: 'a1b2c3d',
-		subject: 'Merge branch \'hotfix/FOO-219\' into \'master\'',
-		parents: ['b2c3d4e5', 'c3d4e5f6'],
-		level: 0, index: 0,
-		author_name: 'Jakub Záruba',
-		author_date: '1 min ago',
-		authorColor: '#6f9ef8',
-		references: [{type: 'HEAD', name: 'HEAD'}, {type: 'branch', name: 'master'}],
-	},
-	{
-		hash: 'b2c3d4e5f6a7b8c9',
-		hash_abbr: 'b2c3d4e',
-		subject: '[CMP] add missing \'master\' to relations',
-		parents: ['d4e5f6a7'],
-		level: 0, index: 1,
-		author_name: 'Jakub Záruba',
-		author_date: '2 hrs ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'c3d4e5f6a7b8c9d0',
-		hash_abbr: 'c3d4e5f',
-		subject: 'Merge branch \'hotfix/FOO-215\' into \'master\'',
-		parents: ['d4e5f6a7', 'e5f6a7b8'],
-		level: 0, index: 2,
-		author_name: 'Jakub Záruba',
-		author_date: '4 hrs ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'd4e5f6a7b8c9d0e1',
-		hash_abbr: 'd4e5f6a',
-		subject: '[CMP] CertificationNotification: add missing import',
-		parents: ['f6a7b8c9'],
-		level: 0, index: 3,
-		author_name: 'Jakub Záruba',
-		author_date: '6 hrs ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'e5f6a7b8c9d0e1f2',
-		hash_abbr: 'e5f6a7b',
-		subject: 'Merge branch \'hotfix/FOO-213\' into \'master\'',
-		parents: ['f6a7b8c9', 'a7b8c9d0'],
-		level: 0, index: 4,
-		author_name: 'Tomáš Novák',
-		author_date: '1 day ago',
-		authorColor: '#f89b6f',
-		references: [],
-	},
-	{
-		hash: 'f6a7b8c9d0e1f2a3',
-		hash_abbr: 'f6a7b8c',
-		subject: '[FIX] Update questionnaire (MK - self_person, v0)',
-		parents: ['a7b8c9d0'],
-		level: 0, index: 5,
-		author_name: 'Martin Kovář',
-		author_date: '1 day ago',
-		authorColor: '#6ff8a0',
-		references: [],
-	},
-	{
-		hash: 'a7b8c9d0e1f2a3b4',
-		hash_abbr: 'a7b8c9d',
-		subject: 'Merge branch \'feature/migration\' into \'master\'',
-		parents: ['b8c9d0e1', 'c9d0e1f2'],
-		level: 0, index: 6,
-		author_name: 'Jakub Záruba',
-		author_date: '2 days ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'b8c9d0e1f2a3b4c5',
-		hash_abbr: 'b8c9d0e',
-		subject: '[FIX] Reduce high-risk country check',
-		parents: ['c9d0e1f2'],
-		level: 0, index: 7,
-		author_name: 'Jakub Záruba',
-		author_date: '2 days ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'c9d0e1f2a3b4c5d6',
-		hash_abbr: 'c9d0e1f',
-		subject: '[FIX] Filter by question shares',
-		parents: ['d0e1f2a3'],
-		level: 0, index: 8,
-		author_name: 'Tomáš Novák',
-		author_date: '3 days ago',
-		authorColor: '#f89b6f',
-		references: [],
-	},
-	{
-		hash: 'd0e1f2a3b4c5d6e7',
-		hash_abbr: 'd0e1f2a',
-		subject: '[FIX] Implement search response functionality',
-		parents: ['e1f2a3b4'],
-		level: 0, index: 9,
-		author_name: 'Tomáš Novák',
-		author_date: '3 days ago',
-		authorColor: '#f89b6f',
-		references: [],
-	},
-	{
-		hash: 'e1f2a3b4c5d6e7f8',
-		hash_abbr: 'e1f2a3b',
-		subject: 'Merge branch \'release/4.2.0\' into \'master\'',
-		parents: ['f2a3b4c5', 'a3b4c5d6'],
-		level: 0, index: 10,
-		author_name: 'Jakub Záruba',
-		author_date: '4 days ago',
-		authorColor: '#6f9ef8',
-		references: [{type: 'tag', name: 'release and d…'}],
-	},
-	{
-		hash: 'f2a3b4c5d6e7f8a9',
-		hash_abbr: 'f2a3b4c',
-		subject: '[FIX] Migration 24',
-		parents: ['a3b4c5d6'],
-		level: 0, index: 11,
-		author_name: 'Martin Kovář',
-		author_date: '4 days ago',
-		authorColor: '#6ff8a0',
-		references: [],
-	},
-	{
-		hash: 'a3b4c5d6e7f8a9b0',
-		hash_abbr: 'a3b4c5d',
-		subject: '[FIX] Filter for transaction above the limit',
-		parents: ['b4c5d6e7'],
-		level: 0, index: 12,
-		author_name: 'Jakub Záruba',
-		author_date: '5 days ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'b4c5d6e7f8a9b0c1',
-		hash_abbr: 'b4c5d6e',
-		subject: '[FIX] diff',
-		parents: ['c5d6e7f8'],
-		level: 0, index: 13,
-		author_name: 'Jakub Záruba',
-		author_date: '5 days ago',
-		authorColor: '#6f9ef8',
-		references: [],
-	},
-	{
-		hash: 'c5d6e7f8a9b0c1d2',
-		hash_abbr: 'c5d6e7f',
-		subject: 'Merge branch \'release/4.1.0\' into \'master\'',
-		parents: ['d6e7f8a9'],
-		level: 0, index: 14,
-		author_name: 'Jakub Záruba',
-		author_date: '6 days ago',
-		authorColor: '#6f9ef8',
-		references: [{type: 'tag', name: 'release and d…'}],
-	},
-];
+const scrollEl = ref<HTMLElement | null>(null);
+
+// First selected hash → drives graph highlight and row selection
+const selectedHash = computed(() => selectedHashes.value[0]);
 
 const graphWidth = computed(() => {
-	const maxLevel = Math.max(...commits.map(c => c.level));
+	if (!commits.value.length) return 0;
+	const maxLevel = Math.max(...commits.value.map(c => c.level ?? 0));
 
 	return (maxLevel + 1) * 20 + 12 + 16 + 4;
 });
 
-function selectCommit(commit: MockCommit): void {
-	selectedHash.value = commit.hash ?? undefined;
+async function refresh(): Promise<void> {
+	if (!currentProject.value) {
+		return;
+	}
+
+	try {
+		await Promise.all([
+			loadStatus(),
+			loadStashes(),
+			loadCommits(),
+		]);
+	}
+	catch (e: unknown) {
+		message.error(e instanceof Error ? e.message : 'Failed to load repository data');
+	}
 }
 
-function onContextMenu(_commit: MockCommit, _event: MouseEvent): void {
-	// context menu – will be wired in Phase 5
+function handleSelectCommit(commit: ICommit): void {
+	selectCommit(commit.hash);
 }
+
+function onContextMenu(_commit: ICommit, _event: MouseEvent): void {
+	// context menu – Phase 5
+}
+
+onMounted(refresh);
+
+watch(() => currentProject.value, refresh);
 </script>
 
 <style scoped lang="scss">
@@ -249,6 +136,31 @@ function onContextMenu(_commit: MockCommit, _event: MouseEvent): void {
 
 	&__rows {
 		width: 100%;
+	}
+
+	&__loading {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #555;
+	}
+
+	&__empty {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		color: #3a3f48;
+		font-size: 0.85em;
+
+		svg {
+			width: 32px;
+			height: 32px;
+			opacity: 0.4;
+		}
 	}
 }
 </style>

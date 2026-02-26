@@ -32,7 +32,7 @@
 						class="project-btn"
 						:class="{'project-btn--active': currentProject?.id === project.id}"
 						:style="{'--project-color': project.color ?? '#6f9ef8'}"
-						@click="handleOpenProject(project)"
+						@click="openProject(project)"
 					>
 						{{ initials(project.alias) }}
 					</button>
@@ -58,13 +58,10 @@
 import {ref} from 'vue';
 import {NButton, NModal, NTooltip} from 'naive-ui';
 import {useProject} from '@/composables/useProject';
-import {useWebSocket} from '@/composables/useWebSocket';
-import type {IProject} from '@/domain';
 import Icon from './Icon.vue';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
 const {projects, currentProject, openProject} = useProject();
-const {connect} = useWebSocket();
 const showManager = ref(false);
 
 function initials(alias: string): string {
@@ -75,10 +72,6 @@ function initials(alias: string): string {
 	return alias.slice(0, 2).toUpperCase();
 }
 
-function handleOpenProject(project: IProject): void {
-	openProject(project);
-	connect(`ws://${project.server}:${project.port}`);
-}
 </script>
 
 <style scoped>

@@ -8,13 +8,13 @@
 			</div>
 		</div>
 		<div class="project-actions">
-			<n-button size="small" type="success" @click="$emit('open', project)">
+			<n-button size="small" type="success" @click="emit('open', project)">
 				<template #icon><Icon name="mdi-play" /></template>
 			</n-button>
-			<n-button size="small" type="info" @click="$emit('edit', project)">
+			<n-button size="small" type="info" @click="emit('edit', project)">
 				<template #icon><Icon name="mdi-pencil" /></template>
 			</n-button>
-			<n-button size="small" type="error" @click="$emit('delete', project)">
+			<n-button size="small" type="error" @click="emit('delete', project)">
 				<template #icon><Icon name="mdi-trash-can" /></template>
 			</n-button>
 		</div>
@@ -24,15 +24,15 @@
 <script lang="ts" setup>
 import type {IProject} from '@/domain';
 import {NButton} from 'naive-ui';
+import Icon from '@/ui/components/Icon.vue';
 
-const
-	emit = defineEmits<{
-		open: [project: IProject],
-		edit: [project: IProject],
-		delete: [project: IProject],
-	}>(),
-	props = defineProps<{
-		project: IProject;
-	}>();
+defineProps<{
+	project: IProject;
+}>();
 
+const emit = defineEmits<{
+	open: [project: IProject];
+	edit: [project: IProject];
+	delete: [project: IProject];
+}>();
 </script>

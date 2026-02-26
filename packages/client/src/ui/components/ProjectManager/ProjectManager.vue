@@ -41,7 +41,7 @@
 									v-for="project in projectsByGroup[group.id]"
 									:key="project.id"
 									:project="project"
-									@open="handleOpenProject(project)"
+									@open="openProject(project)"
 									@edit="openEdit(project)"
 									@delete="confirmDelete(project)"
 								/>
@@ -58,7 +58,7 @@
 								v-for="project in ungrouped"
 								:key="project.id"
 								:project="project"
-								@open="handleOpenProject(project)"
+								@open="openProject(project)"
 								@edit="openEdit(project)"
 								@delete="confirmDelete(project)"
 							/>
@@ -211,7 +211,6 @@ const emit = defineEmits<{
 
 const dialog = useDialog();
 const {projects, groups, openProject, removeProject, addGroup, updateGroup, removeGroup} = useProject();
-const {connect} = useWebSocket();
 
 const activeTab = ref<'projects' | 'groups'>('projects');
 const filterText = ref('');
@@ -260,12 +259,6 @@ function openEdit(project: IProject): void {
 
 function onProjectSaved(): void {
 	showProjectForm.value = false;
-}
-
-function handleOpenProject(project: IProject): void {
-	openProject(project);
-	connect(`ws://${project.server}:${project.port}`);
-	emit('projectOpened', project);
 }
 
 function confirmDelete(project: IProject): void {

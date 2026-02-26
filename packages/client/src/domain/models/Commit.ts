@@ -3,7 +3,7 @@ import type {IReference} from './Reference';
 export interface ICommit {
 	hash: string
 	hashAbbr: string
-	parents: Array<string>
+	parents: ReadonlyArray<string>
 	subject: string
 	body: string
 	authorEmail: string
@@ -14,6 +14,6 @@ export interface ICommit {
 	committerDate: string
 	index?: number
 	level?: number
-	references?: Array<IReference>
+	references?: ReadonlyArray<IReference>
 	isStash?: boolean
 }

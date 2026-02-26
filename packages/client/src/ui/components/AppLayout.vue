@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {ref, onMounted} from 'vue';
 import {Splitpanes, Pane} from 'splitpanes';
 import Sidebar from './Sidebar/Sidebar.vue';
 import CommitHistory from './CommitHistory/CommitHistory.vue';
@@ -54,7 +54,12 @@ import {useProject} from '@/composables/useProject';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
 const activeDiffFile = ref<string | null>(null);
-const {currentProject} = useProject();
+const {currentProject, openLastOpenProject} = useProject();
+
+onMounted(() => {
+	openLastOpenProject();
+});
+
 </script>
 
 <style scoped lang="scss">

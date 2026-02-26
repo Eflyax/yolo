@@ -22,19 +22,19 @@
 		<!-- Commit nodes -->
 		<g v-for="commit in commits" :key="'node-' + commit.hash">
 			<rect
-				:x="PADDING_LEFT + commit.level * X_STEP - 1"
-				:y="commit.index * Y_STEP"
+				:x="PADDING_LEFT + (commit.level ?? 0) * X_STEP - 1"
+				:y="(commit.index ?? 0) * Y_STEP"
 				:width="svgWidth"
 				:height="Y_STEP - ROW_MARGIN"
-				:fill="getColor(commit.level)"
+				:fill="getColor(commit.level ?? 0)"
 				:fill-opacity="selectedHash === commit.hash ? 0.18 : 0.06"
 			/>
 
 			<circle
-				:cx="PADDING_LEFT + commit.level * X_STEP"
-				:cy="PADDING_TOP + commit.index * Y_STEP - ROW_MARGIN"
+				:cx="PADDING_LEFT + (commit.level ?? 0) * X_STEP"
+				:cy="PADDING_TOP + (commit.index ?? 0) * Y_STEP - ROW_MARGIN"
 				:r="commit.parents.length > 1 ? CIRCLE_R / 2 : CIRCLE_R"
-				:fill="getColor(commit.level)"
+				:fill="getColor(commit.level ?? 0)"
 				:stroke="'#0d0f11'"
 				:stroke-width="LINE_WIDTH"
 			/>
@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import {computed} from 'vue';
-import type {MockCommit} from './CommitRow.vue';
+import type {ICommit} from '@/domain';
 
 const COLORS = [
 	'#6f9ef8', '#f89b6f', '#6ff8a0', '#f86f6f',
@@ -61,12 +61,12 @@ const ROW_MARGIN = 5;
 const CORNER_R = 8;
 
 const props = defineProps<{
-	commits: MockCommit[]
+	commits: readonly ICommit[]
 	selectedHash?: string
 }>();
 
 const commitMap = computed(() => {
-	const map = new Map<string, MockCommit>();
+	const map = new Map<string, Readonly<ICommit>>();
 
 	props.commits.forEach(c => map.set(c.hash, c));
 
@@ -75,7 +75,7 @@ const commitMap = computed(() => {
 
 const svgWidth = computed(() => {
 	if (!props.commits.length) return 0;
-	const maxLevel = Math.max(...props.commits.map(c => c.level));
+	const maxLevel = Math.max(...props.commits.map(c => c.level ?? 0));
 
 	return (maxLevel + 1) * X_STEP + PADDING_LEFT + 16;
 });
@@ -83,32 +83,39 @@ const svgWidth = computed(() => {
 const svgHeight = computed(() => props.commits.length * Y_STEP + 10);
 
 function getColor(level: number): string {
-	return COLORS[level % COLORS.length];
+	return COLORS[level % COLORS.length]!;
 }
 
-function getPathColor(commit: MockCommit, parentHash: string): string {
+function getPathColor(commit: Readonly<ICommit>, parentHash: string): string {
 	const parent = commitMap.value.get(parentHash);
-	const branchLevel = Math.max(commit.level, parent?.level ?? commit.level);
+	const commitLevel = commit.level ?? 0;
+	const parentLevel = parent?.level ?? commitLevel;
+	const branchLevel = Math.max(commitLevel, parentLevel);
 
 	return getColor(branchLevel);
 }
 
-function getPath(commit: MockCommit, parentHash: string): string | undefined {
+function getPath(commit: Readonly<ICommit>, parentHash: string): string | undefined {
 	const parent = commitMap.value.get(parentHash);
 
 	if (!parent) return undefined;
 
-	const sx = PADDING_LEFT + commit.level * X_STEP;
-	const sy = PADDING_TOP + commit.index * Y_STEP - ROW_MARGIN;
-	const ex = PADDING_LEFT + parent.level * X_STEP;
-	const ey = PADDING_TOP + parent.index * Y_STEP - ROW_MARGIN;
+	const cLevel = commit.level ?? 0;
+	const cIndex = commit.index ?? 0;
+	const pLevel = parent.level ?? 0;
+	const pIndex = parent.index ?? 0;
 
-	if (commit.level === parent.level) {
+	const sx = PADDING_LEFT + cLevel * X_STEP;
+	const sy = PADDING_TOP + cIndex * Y_STEP - ROW_MARGIN;
+	const ex = PADDING_LEFT + pLevel * X_STEP;
+	const ey = PADDING_TOP + pIndex * Y_STEP - ROW_MARGIN;
+
+	if (cLevel === pLevel) {
 		return `M ${sx} ${sy + CIRCLE_R} L ${ex} ${ey - CIRCLE_R}`;
 	}
 
 	const xDir = ex > sx ? 1 : -1;
-	const delta = commit.level - parent.level;
+	const delta = cLevel - pLevel;
 
 	if (delta < 0) {
 		const w = Math.abs(ex - sx);

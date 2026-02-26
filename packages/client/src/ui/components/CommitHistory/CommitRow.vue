@@ -29,38 +29,34 @@
 
 		<!-- Meta -->
 		<div class="commit-row__meta">
-			<span class="commit-row__date">{{ commit.author_date }}</span>
-			<span class="commit-row__hash">{{ commit.hash_abbr }}</span>
+			<span class="commit-row__date">{{ commit.authorDate }}</span>
+			<span class="commit-row__hash">{{ commit.hashAbbr }}</span>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import {computed} from 'vue';
-
-export interface CommitRef {
-	type: 'branch' | 'remote' | 'tag' | 'stash' | 'HEAD'
-	name: string
-}
-
-export interface MockCommit {
-	hash: string
-	hash_abbr: string
-	subject: string
-	parents: string[]
-	level: number
-	index: number
-	author_name: string
-	author_date: string
-	authorColor: string
-	references: CommitRef[]
-	isStash?: boolean
-}
+import type {ICommit} from '@/domain';
 
 const ROW_HEIGHT = 28;
 
+const AUTHOR_COLORS = [
+	'#6f9ef8', '#f89b6f', '#6ff8a0', '#f86f6f',
+	'#c46ff8', '#f8e56f', '#6feef8', '#f86fc4',
+];
+
+function hashAuthorColor(seed: string): string {
+	let hash = 0;
+	for (let i = 0; i < seed.length; i++) {
+		hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+		hash |= 0;
+	}
+	return AUTHOR_COLORS[Math.abs(hash) % AUTHOR_COLORS.length]!;
+}
+
 const props = defineProps<{
-	commit: MockCommit
+	commit: ICommit
 	isSelected?: boolean
 }>();
 
@@ -69,11 +65,13 @@ const emit = defineEmits<{
 	contextmenu: [event: MouseEvent]
 }>();
 
-const authorInitial = computed(() =>
-	props.commit.author_name?.charAt(0)?.toUpperCase() ?? '?',
+const authorColor = computed(() =>
+	hashAuthorColor(props.commit.authorEmail || props.commit.authorName),
 );
 
-const authorColor = computed(() => props.commit.authorColor ?? '#6f9ef8');
+const authorInitial = computed(() =>
+	props.commit.authorName?.charAt(0)?.toUpperCase() ?? '?',
+);
 </script>
 
 <style scoped lang="scss">
@@ -156,6 +154,11 @@ const authorColor = computed(() => props.commit.authorColor ?? '#6f9ef8');
 		&--remote {
 			background: rgba(166, 227, 161, 0.15);
 			color: #a6e3a1;
+		}
+
+		&--stash {
+			background: rgba(248, 159, 111, 0.2);
+			color: #f89f6f;
 		}
 	}
 

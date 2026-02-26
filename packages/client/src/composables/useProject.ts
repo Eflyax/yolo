@@ -1,8 +1,9 @@
 import {ref, readonly} from 'vue';
 import type {IProject, IProjectGroup} from '@/domain';
-
+import {useWebSocket} from '@/composables/useWebSocket';
 const PROJECTS_KEY = 'git-yak:projects';
 const GROUPS_KEY = 'git-yak:groups';
+const LAST_OPEN_PROJECT = 'git-yak:lastProjectId';
 
 const projects = ref<IProject[]>(loadFromStorage<IProject[]>(PROJECTS_KEY, []));
 const groups = ref<IProjectGroup[]>(loadFromStorage<IProjectGroup[]>(GROUPS_KEY, []));
@@ -24,7 +25,7 @@ function saveProjects(): void {
 		localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects.value));
 	}
 	catch {
-		// localStorage nedostupný (SSR, private mode)
+		console.error('localStorage is not available');
 	}
 }
 
@@ -40,14 +41,38 @@ function generateId(): string {
 }
 
 export function useProject() {
-	function openProject(project: IProject): void {
-		const updated = updateProject(project.id, {dateLastOpen: Date.now()});
+	const
+		{connect} = useWebSocket();
 
+	function openProject(project: IProject): void {
+		const
+			updated = updateProject(project.id, {dateLastOpen: Date.now()});
+
+		localStorage.setItem(LAST_OPEN_PROJECT, project.id);
 		currentProject.value = updated ?? project;
+
+		connect(`ws://${project.server}:${project.port}`);
 	}
 
 	function closeProject(): void {
 		currentProject.value = null;
+		localStorage.removeItem(LAST_OPEN_PROJECT);
+	}
+
+	function openLastOpenProject() {
+		const lastProjectId = localStorage.getItem(LAST_OPEN_PROJECT);
+
+		if (lastProjectId) {
+			const project = getProject(lastProjectId);
+
+			if (project) {
+				openProject(project);
+			}
+		}
+	}
+
+	function getProject(id: string): IProject | null {
+		return projects.value.find(p => p.id === id) ?? null;
 	}
 
 	function addProject(data: Omit<IProject, 'id' | 'order' | 'dateCreated' | 'dateLastOpen'>): IProject {
@@ -145,5 +170,6 @@ export function useProject() {
 		removeGroup,
 		updateGroup,
 		assignProjectToGroup,
+		openLastOpenProject
 	};
 }
