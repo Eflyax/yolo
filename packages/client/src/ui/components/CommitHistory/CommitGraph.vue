@@ -47,16 +47,20 @@ import {computed} from 'vue';
 import type {ICommit} from '@/domain';
 
 const COLORS = [
-	'#6f9ef8', '#f89b6f', '#6ff8a0', '#f86f6f',
-	'#c46ff8', '#f8e56f', '#6feef8', '#f86fc4',
+	'#30a0bf',
+	'#0f69f7',
+	'#8e02c2',
+	'#9f544c',
+	'#984c80',
+	'#77509b',
 ];
 
 const X_STEP = 20;
 const Y_STEP = 28;
 const PADDING_LEFT = 12;
 const PADDING_TOP = 14;
-const CIRCLE_R = 5;
-const LINE_WIDTH = 1.5;
+const CIRCLE_R = 10;
+const LINE_WIDTH = 3;
 const ROW_MARGIN = 5;
 const CORNER_R = 8;
 
@@ -148,5 +152,7 @@ function getPath(commit: Readonly<ICommit>, parentHash: string): string | undefi
 	display: block;
 	flex-shrink: 0;
 	pointer-events: none;
+	height: 100%;
+	width: 200px;
 }
 </style>

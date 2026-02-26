@@ -29,7 +29,7 @@
 				</div>
 
 				<!-- Commit rows -->
-				<div class="commit-history__rows" :style="{marginLeft: graphWidth + 'px'}">
+				 <div class="commit-history__rows" :style="{marginLeft: graphWidth + 'px'}">
 					<CommitRow
 						v-for="commit in commits"
 						:key="commit.hash"
