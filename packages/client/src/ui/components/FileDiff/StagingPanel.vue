@@ -6,9 +6,9 @@
 				<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
 					<path d="M6 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7a1 1 0 0 0 1 1h8a2 2 0 0 1 2 2v.27c.6.34 1 .99 1 1.73a2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-.74.4-1.39 1-1.73V10a0 0 0 0 0 0 0H8a3 3 0 0 1-3-3V5.73A2 2 0 0 1 4 4a2 2 0 0 1 2-2m6 16a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2z"/>
 				</svg>
-				<span>2 file changes on <strong>master</strong></span>
+				<span>{{ totalCount }} file changes<template v-if="currentBranch"> on <strong>{{ currentBranch.name }}</strong></template></span>
 			</span>
-			<button class="staging-panel__stage-all">Stage All</button>
+			<button class="staging-panel__stage-all" @click="handleStageAll">Stage All</button>
 		</div>
 
 		<!-- Unstaged files -->
@@ -39,13 +39,16 @@
 					<input
 						type="checkbox"
 						class="staging-panel__checkbox"
-						:checked="file.staged"
-						@click.stop
+						:checked="false"
+						@click.stop="handleStageFile(file.path)"
 					/>
 					<span class="staging-panel__file-status" :class="`staging-panel__file-status--${file.status.toLowerCase()}`">
 						{{ file.status }}
 					</span>
 					<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+				</div>
+				<div v-if="unstagedFiles.length === 0" class="staging-panel__empty-section">
+					No unstaged files
 				</div>
 			</div>
 		</div>
@@ -67,8 +70,28 @@
 				<span class="staging-panel__count">{{ stagedFiles.length }}</span>
 			</div>
 
-			<div v-if="stagedExpanded && stagedFiles.length === 0" class="staging-panel__empty-section">
-				No staged files
+			<div v-if="stagedExpanded" class="staging-panel__file-list">
+				<div
+					v-for="file in stagedFiles"
+					:key="file.path"
+					class="staging-panel__file"
+					:class="{'staging-panel__file--active': activePath === file.path}"
+					@click="activePath = file.path; emit('openDiff', file.path)"
+				>
+					<input
+						type="checkbox"
+						class="staging-panel__checkbox"
+						:checked="true"
+						@click.stop="handleUnstageFile(file.path)"
+					/>
+					<span class="staging-panel__file-status" :class="`staging-panel__file-status--${file.status.toLowerCase()}`">
+						{{ file.status }}
+					</span>
+					<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+				</div>
+				<div v-if="stagedFiles.length === 0" class="staging-panel__empty-section">
+					No staged files
+				</div>
 			</div>
 		</div>
 
@@ -78,7 +101,7 @@
 		<div class="staging-panel__commit-form">
 			<div class="staging-panel__commit-header">
 				<span class="staging-panel__commit-label">Commit</span>
-				<button class="staging-panel__reset-btn" title="Reset">
+				<button class="staging-panel__reset-btn" title="Reset" @click="commitSummary = ''; commitDescription = ''">
 					<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
 						<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
 					</svg>
@@ -129,18 +152,17 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {ref, computed} from 'vue';
 import {NInput} from 'naive-ui';
-
-interface StagedFile {
-	path: string
-	status: 'M' | 'A' | 'D'
-	staged: boolean
-}
+import {useWorkingTree} from '@/composables/useWorkingTree';
+import {useBranches} from '@/composables/useBranches';
 
 const emit = defineEmits<{
 	openDiff: [filePath: string]
 }>();
+
+const {status, loadStatus, stageFile, stageAll, unstageFile} = useWorkingTree();
+const {currentBranch} = useBranches();
 
 const activePath = ref<string | null>(null);
 const unstagedExpanded = ref(true);
@@ -150,18 +172,37 @@ const commitSummary = ref('');
 const commitDescription = ref('');
 const stageChangesToFavorite = ref(false);
 
-const unstagedFiles: StagedFile[] = [
-	{path: 'packages/client/src/components/Repository.vue', status: 'M', staged: false},
-	{path: 'packages/client/src/components/Orchestration/types.ts', status: 'M', staged: false},
-];
+const unstagedFiles = computed(() => status.value.unstaged);
+const stagedFiles = computed(() => status.value.staged);
 
-const stagedFiles: StagedFile[] = [];
+const totalCount = computed(() => {
+	const paths = new Set([
+		...unstagedFiles.value.map(f => f.path),
+		...stagedFiles.value.map(f => f.path),
+	]);
+
+	return paths.size;
+});
 
 function fileName(path: string): string {
 	const parts = path.split('/');
 
 	return parts[parts.length - 1] ?? path;
 }
+
+async function handleStageFile(filePath: string): Promise<void> {
+	await stageFile(filePath);
+}
+
+async function handleUnstageFile(filePath: string): Promise<void> {
+	await unstageFile(filePath);
+}
+
+async function handleStageAll(): Promise<void> {
+	await stageAll();
+}
+
+loadStatus();
 </script>
 
 <style scoped lang="scss">
@@ -293,6 +334,7 @@ function fileName(path: string): string {
 		&--m { color: #f89b6f; }
 		&--a { color: #6ff8a0; }
 		&--d { color: #f86f6f; }
+		&--r { color: #6f9ef8; }
 	}
 
 	&__file-name {

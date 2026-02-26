@@ -26,7 +26,7 @@
 
 				<Pane :size="24" :min-size="18" :max-size="40" class="pane-right">
 					<StagingPanel
-						v-if="activeDiffFile"
+						v-if="isWorkingTreeSelected"
 						@open-diff="activeDiffFile = $event"
 					/>
 					<CommitDetails
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue';
+import {ref, computed, onMounted} from 'vue';
 import {Splitpanes, Pane} from 'splitpanes';
 import Sidebar from './Sidebar/Sidebar.vue';
 import CommitHistory from './CommitHistory/CommitHistory.vue';
@@ -51,10 +51,14 @@ import StagingPanel from './FileDiff/StagingPanel.vue';
 import ProjectsSidebar from './ProjectsSidebar.vue';
 import Toolbar from './Toolbar.vue';
 import {useProject} from '@/composables/useProject';
+import {useCommits} from '@/composables/useCommits';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
 const activeDiffFile = ref<string | null>(null);
 const {currentProject, openLastOpenProject} = useProject();
+const {selectedHashes} = useCommits();
+
+const isWorkingTreeSelected = computed(() => selectedHashes.value[0] === 'WORKING_TREE');
 
 onMounted(() => {
 	openLastOpenProject();

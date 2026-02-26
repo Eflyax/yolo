@@ -9,9 +9,16 @@
 		@click="emit('select')"
 		@contextmenu.prevent="emit('contextmenu', $event)"
 	>
-		<!-- Message -->
+		<!-- Message / Working-tree stats -->
 		<div class="commit-row__body">
-			<span class="commit-row__message">{{ commit.subject }}</span>
+			<CommitFileStats
+				v-if="commit.hash === 'WORKING_TREE'"
+				:A="workingTreeStats.A"
+				:M="workingTreeStats.M"
+				:D="workingTreeStats.D"
+				:R="workingTreeStats.R"
+			/>
+			<span v-else class="commit-row__message">{{ commit.subject }}</span>
 		</div>
 
 		<!-- Meta -->
@@ -25,7 +32,10 @@
 <script setup lang="ts">
 import {computed} from 'vue';
 import type {ICommit} from '@/domain';
+import {EFileStatus} from '@/domain';
 import {getGraphColor} from './graphColors';
+import CommitFileStats from '@/ui/components/CommitFileStats.vue';
+import {useWorkingTree} from '@/composables/useWorkingTree';
 
 const ROW_HEIGHT = 28;
 
@@ -64,6 +74,9 @@ const _authorInitial = computed(() =>
 
 void _authorColor;
 void _authorInitial;
+
+const {workingTreeStats} = useWorkingTree();
+
 </script>
 
 <style scoped lang="scss">

@@ -16,6 +16,7 @@
 					opacity="0.85"
 					:stroke-dasharray="commit.isStash || commit.hash === 'WORKING_TREE' ? '3 2' : undefined"
 				/>
+				<!-- todo - load -->
 			</template>
 		</g>
 

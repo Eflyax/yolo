@@ -104,6 +104,22 @@ export function useWorkingTree() {
 		await loadStatus();
 	}
 
+	const workingTreeStats = computed(() => {
+		const all = new Map<string, EFileStatus>();
+
+		for (const f of status.value.unstaged) all.set(f.path, f.status);
+		for (const f of status.value.staged) all.set(f.path, f.status);
+
+		const statuses = Array.from(all.values());
+
+		return {
+			A: statuses.filter(s => s === EFileStatus.Added).length,
+			M: statuses.filter(s => s === EFileStatus.Modified).length,
+			D: statuses.filter(s => s === EFileStatus.Deleted).length,
+			R: statuses.filter(s => s === EFileStatus.Renamed).length,
+		};
+	});
+
 	return {
 		status: readonly(status),
 		hasChanges,
@@ -115,5 +131,6 @@ export function useWorkingTree() {
 		unstageFile,
 		unstageAll,
 		discardFile,
+		workingTreeStats
 	};
 }
