@@ -1,0 +1,119 @@
+import {ref, computed, readonly} from 'vue';
+import type {IWorkingTreeStatus, IFileStatus} from '@/domain';
+import {EFileStatus, EFileArea} from '@/domain';
+import {useGit} from './useGit';
+
+const status = ref<IWorkingTreeStatus>({staged: [], unstaged: []});
+
+function parseStatus(output: string): IWorkingTreeStatus {
+	const tokens = output.split('\0').filter((t, i, arr) => i < arr.length - 1 || t);
+	const staged: IFileStatus[] = [];
+	const unstaged: IFileStatus[] = [];
+
+	let i = 0;
+
+	while (i < tokens.length) {
+		const token = tokens[i];
+
+		if (!token || token.length < 3) {
+			i++;
+			continue;
+		}
+
+		const x = token[0] as EFileStatus;
+		const y = token[1] as EFileStatus;
+		const path = token.slice(3);
+		let oldPath: string | undefined;
+
+		if (x === EFileStatus.Renamed || x === EFileStatus.Copied) {
+			oldPath = tokens[++i];
+		}
+
+		// Staged (index status)
+		if (x !== EFileStatus.Unmodified && x !== EFileStatus.Untracked) {
+			staged.push({
+				status: x,
+				path,
+				oldPath,
+				area: EFileArea.Staged,
+			});
+		}
+
+		// Unstaged (worktree status)
+		if (y !== EFileStatus.Unmodified) {
+			unstaged.push({
+				status: y === EFileStatus.Untracked ? EFileStatus.Added : y,
+				path,
+				oldPath,
+				area: EFileArea.Unstaged,
+			});
+		}
+
+		i++;
+	}
+
+	return {
+		staged: staged.filter(f => f.status !== EFileStatus.Unmodified).sort((a, b) => a.path.localeCompare(b.path)),
+		unstaged: unstaged.filter(f => f.status !== EFileStatus.Unmodified).sort((a, b) => a.path.localeCompare(b.path)),
+	};
+}
+
+export function useWorkingTree() {
+	const {callGit, stageFile: gitStageFile, stageAll: gitStageAll, unstageFile: gitUnstageFile, unstageAll: gitUnstageAll, discardFile: gitDiscardFile} = useGit();
+
+	const hasChanges = computed(
+		() => status.value.staged.length > 0 || status.value.unstaged.length > 0,
+	);
+
+	const stagedCount = computed(() => status.value.staged.length);
+	const unstagedCount = computed(() => status.value.unstaged.length);
+
+	async function loadStatus(): Promise<void> {
+		const output = await callGit(
+			'status',
+			'--porcelain',
+			'-z',
+			'--untracked-files=all',
+		);
+
+		status.value = parseStatus(output);
+	}
+
+	async function stageFile(filePath: string): Promise<void> {
+		await gitStageFile(filePath);
+		await loadStatus();
+	}
+
+	async function stageAll(): Promise<void> {
+		await gitStageAll();
+		await loadStatus();
+	}
+
+	async function unstageFile(filePath: string): Promise<void> {
+		await gitUnstageFile(filePath);
+		await loadStatus();
+	}
+
+	async function unstageAll(): Promise<void> {
+		await gitUnstageAll();
+		await loadStatus();
+	}
+
+	async function discardFile(filePath: string): Promise<void> {
+		await gitDiscardFile(filePath);
+		await loadStatus();
+	}
+
+	return {
+		status: readonly(status),
+		hasChanges,
+		stagedCount,
+		unstagedCount,
+		loadStatus,
+		stageFile,
+		stageAll,
+		unstageFile,
+		unstageAll,
+		discardFile,
+	};
+}
