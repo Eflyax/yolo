@@ -1,21 +1,27 @@
 <template>
 	<svg class="fill-current" viewBox="0 0 24 24">
-		<path :d />
+		<path :d="iconPath" />
 	</svg>
 </template>
 
-<script>
-import * as icons from "@mdi/js";
-import _ from 'lodash';
+<script lang="ts">
+import {defineComponent, computed} from 'vue';
+import * as icons from '@mdi/js';
 
-export default {
+function toMdiKey(name: string): string {
+	return name.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+export default defineComponent({
 	props: {
-		name: { type: String, required: true },
+		name: {type: String, required: true},
 	},
-	computed: {
-		d() {
-			return icons[_.camelCase(this.name)];
-		},
+	setup(props) {
+		const iconPath = computed(
+			() => (icons as Record<string, string>)[toMdiKey(props.name)] ?? '',
+		);
+
+		return {iconPath};
 	},
-};
+});
 </script>
