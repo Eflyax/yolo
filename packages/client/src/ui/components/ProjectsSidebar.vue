@@ -94,8 +94,8 @@ function handleOpenProject(project: IProject): void {
 }
 
 .open-repo-manager {
-	width: 42px;
-	height: 42px;
+	width: 50px;
+	height: 50px;
 	flex-shrink: 0;
 
 	svg {

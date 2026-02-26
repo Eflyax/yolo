@@ -1,26 +1,32 @@
 <template>
 <div class="toolbar">
 	<span class="toolbar__branch-path">
-		<span class="toolbar__project">ami-api-2</span>
-		<span class="toolbar__sep">›</span>
-		<span class="toolbar__branch">master</span>
+		<template v-if="currentProject">
+			<span class="toolbar__project">
+				{{ currentProject.alias }}
+			</span>
+			<span class="toolbar__sep">›</span>
+			<span class="toolbar__branch">master</span>
+		</template>
 	</span>
 
 	<div class="toolbar__actions">
-		<NButton
-			v-for="action of actions"
-			:key="action.label"
-			class="toolbar__action-btn"
-			:title="action.label"
-			:disabled="action.disabled"
-			quaternary
-			size="small"
-		>
-			<div class="content">
-				<p>{{ action.label }}</p>
-				<Icon :name="action.icon" />
-			</div>
-		</NButton>
+		<template v-if="currentProject">
+			<NButton
+				v-for="action of actions"
+				:key="action.label"
+				class="toolbar__action-btn"
+				:title="action.label"
+				:disabled="action.disabled"
+				quaternary
+				size="small"
+			>
+				<div class="content">
+					<p>{{ action.label }}</p>
+					<Icon :name="action.icon" />
+				</div>
+			</NButton>
+		</template>
 	</div>
 
 	<div class="profile">
@@ -30,8 +36,11 @@
 </template>
 
 <script setup lang="ts">
-
 import {NButton} from 'naive-ui';
+import {useProject} from '@/composables/useProject';
+
+const
+	{currentProject} = useProject();
 
 const
 	actions = [{

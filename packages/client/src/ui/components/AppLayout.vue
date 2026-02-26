@@ -4,7 +4,10 @@
 		 <div class="repository">
 			<Toolbar />
 
-			<Splitpanes class="layout-splitpanes">
+			<Splitpanes
+				v-if="currentProject"
+				class="layout-splitpanes"
+			>
 				<Pane :size="17" :min-size="12" :max-size="30" class="pane-sidebar">
 					<Sidebar />
 				</Pane>
@@ -32,6 +35,7 @@
 					/>
 				</Pane>
 			</Splitpanes>
+			<ProjectManager v-else />
 		 </div>
 	</div>
 </template>
@@ -46,8 +50,11 @@ import FileDiff from './FileDiff/FileDiff.vue';
 import StagingPanel from './FileDiff/StagingPanel.vue';
 import ProjectsSidebar from './ProjectsSidebar.vue';
 import Toolbar from './Toolbar.vue';
+import {useProject} from '@/composables/useProject';
+import ProjectManager from './ProjectManager/ProjectManager.vue';
 
 const activeDiffFile = ref<string | null>(null);
+const {currentProject} = useProject();
 </script>
 
 <style scoped lang="scss">
@@ -82,5 +89,9 @@ const activeDiffFile = ref<string | null>(null);
 	background-color: #111318;
 	border-left: 1px solid #1e2228;
 	overflow: hidden;
+}
+
+.project-manager {
+	margin: 10px auto;
 }
 </style>

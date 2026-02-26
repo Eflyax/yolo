@@ -8,13 +8,13 @@
 			</div>
 		</div>
 		<div class="project-actions">
-			<n-button size="small" type="success" @click="$emit('open')">
+			<n-button size="small" type="success" @click="$emit('open', project)">
 				<template #icon><Icon name="mdi-play" /></template>
 			</n-button>
-			<n-button size="small" type="info" @click="$emit('edit')">
+			<n-button size="small" type="info" @click="$emit('edit', project)">
 				<template #icon><Icon name="mdi-pencil" /></template>
 			</n-button>
-			<n-button size="small" type="error" @click="$emit('delete')">
+			<n-button size="small" type="error" @click="$emit('delete', project)">
 				<template #icon><Icon name="mdi-trash-can" /></template>
 			</n-button>
 		</div>
@@ -25,13 +25,14 @@
 import type {IProject} from '@/domain';
 import {NButton} from 'naive-ui';
 
-const emit = defineEmits<{
-	open: [project: IProject],
-	edit: [project: IProject],
-	delete: [project: IProject],
-}>();
+const
+	emit = defineEmits<{
+		open: [project: IProject],
+		edit: [project: IProject],
+		delete: [project: IProject],
+	}>(),
+	props = defineProps<{
+		project: IProject;
+	}>();
 
-const props = defineProps<{
-	project: IProject;
-}>();
 </script>
