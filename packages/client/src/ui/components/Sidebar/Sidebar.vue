@@ -1,11 +1,5 @@
 <template>
 	<div class="sidebar">
-		<!-- Project header -->
-		<div class="sidebar__header">
-			<span class="sidebar__project-name">{{ projectName }}</span>
-			<span class="sidebar__branch-badge">{{ currentBranch }}</span>
-		</div>
-
 		<!-- Search -->
 		<div class="sidebar__search">
 			<n-input
@@ -105,7 +99,6 @@ interface Branch {
 	color: string
 }
 
-const projectName = ref('ami-api-2');
 const currentBranch = ref('master');
 const searchQuery = ref('');
 const localExpanded = ref(true);
@@ -194,23 +187,6 @@ const filteredRemoteBranches = computed(() => {
 
 	&__section {
 		margin-bottom: 4px;
-	}
-
-	&__section-header {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		padding: 4px 8px;
-		font-size: 10.5px;
-		font-weight: 600;
-		letter-spacing: 0.6px;
-		color: #6b7280;
-		cursor: pointer;
-		text-transform: uppercase;
-
-		&:hover {
-			color: #9ca3af;
-		}
 	}
 
 	&__section-count {

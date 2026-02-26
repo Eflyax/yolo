@@ -1,7 +1,7 @@
 <template>
 	<div class="commit-history">
 		<!-- Toolbar -->
-		<div class="commit-history__toolbar">
+		<!-- <div class="commit-history__toolbar">
 			<span class="commit-history__branch-path">
 				<span class="commit-history__project">ami-api-2</span>
 				<span class="commit-history__sep">›</span>
@@ -25,7 +25,7 @@
 					</svg>
 				</button>
 			</div>
-		</div>
+		</div> -->
 
 		<!-- Graph + rows -->
 		<div class="commit-history__scroll" ref="scrollEl">
@@ -256,62 +256,6 @@ function onContextMenu(_commit: MockCommit, _event: MouseEvent): void {
 	height: 100%;
 	overflow: hidden;
 	background-color: #0d0f11;
-
-	&__toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 10px;
-		height: 36px;
-		border-bottom: 1px solid #1e2228;
-		flex-shrink: 0;
-		background-color: #111318;
-	}
-
-	&__branch-path {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		font-size: 12.5px;
-	}
-
-	&__project {
-		color: #9ca3af;
-		font-weight: 500;
-	}
-
-	&__sep {
-		color: #374151;
-	}
-
-	&__branch {
-		color: #e5e7eb;
-		font-weight: 600;
-	}
-
-	&__actions {
-		display: flex;
-		gap: 2px;
-	}
-
-	&__action-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 26px;
-		height: 26px;
-		border: none;
-		background: transparent;
-		color: #6b7280;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: all 0.1s;
-
-		&:hover {
-			background-color: rgba(255, 255, 255, 0.06);
-			color: #d1d5db;
-		}
-	}
 
 	&__scroll {
 		flex: 1;

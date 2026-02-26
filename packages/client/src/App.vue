@@ -1,14 +1,16 @@
 <template>
 	<n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
-		<n-message-provider>
-			<AppLayout />
-		</n-message-provider>
+		<n-notification-provider :placement="'top-left'">
+			<n-message-provider>
+				<AppLayout />
+			</n-message-provider>
+		</n-notification-provider>
 	</n-config-provider>
 </template>
 
 <script setup lang="ts">
 import {darkTheme} from 'naive-ui';
-import {NConfigProvider, NMessageProvider} from 'naive-ui';
+import {NConfigProvider, NMessageProvider, NNotificationProvider} from 'naive-ui';
 import AppLayout from '@/ui/components/AppLayout.vue';
 
 const themeOverrides = {
