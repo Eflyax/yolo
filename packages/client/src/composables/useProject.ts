@@ -108,7 +108,6 @@ export function useProject() {
 		if (index !== -1) {
 			groups.value.splice(index, 1);
 
-			// Odebrat skupinu z projektů
 			projects.value.forEach(p => {
 				if (p.groupId === id) {
 					p.groupId = undefined;

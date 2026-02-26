@@ -7,7 +7,7 @@ import * as WriteFile from './commands/WriteFile';
 import * as BrowseFiles from './commands/BrowseFiles';
 import * as SshAgentInit from './commands/SshAgentInit';
 
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = Number(process.env.PORT ?? 3_000);
 
 serve({
 	port: PORT,
