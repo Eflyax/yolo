@@ -59,7 +59,7 @@ function parseStatus(output: string): IWorkingTreeStatus {
 }
 
 export function useWorkingTree() {
-	const {callGit, stageFile: gitStageFile, stageAll: gitStageAll, unstageFile: gitUnstageFile, unstageAll: gitUnstageAll, discardFile: gitDiscardFile} = useGit();
+	const {callGit, stageFile: gitStageFile, stageAll: gitStageAll, unstageFile: gitUnstageFile, unstageAll: gitUnstageAll, discardFile: gitDiscardFile, discardAllChanges: gitDiscardAllChanges} = useGit();
 
 	const hasChanges = computed(
 		() => status.value.staged.length || status.value.unstaged.length,
@@ -104,6 +104,11 @@ export function useWorkingTree() {
 		await loadStatus();
 	}
 
+	async function discardAllChanges(): Promise<void> {
+		await gitDiscardAllChanges();
+		await loadStatus();
+	}
+
 	const workingTreeStats = computed(() => {
 		const all = new Map<string, EFileStatus>();
 
@@ -131,6 +136,7 @@ export function useWorkingTree() {
 		unstageFile,
 		unstageAll,
 		discardFile,
+		discardAllChanges,
 		workingTreeStats
 	};
 }

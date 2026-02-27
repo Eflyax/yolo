@@ -2,10 +2,16 @@
 	<div class="staging-panel">
 		<!-- Header -->
 		<div class="staging-panel__header">
+			<NButton
+				size="tiny"
+				type="error"
+				ghost
+				title="Discard all changes"
+				@click="showDiscardConfirm = true"
+			>
+				<template #icon><Icon name="mdi-trash-can" /></template>
+			</NButton>
 			<span class="staging-panel__branch-info">
-				<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
-					<path d="M6 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7a1 1 0 0 0 1 1h8a2 2 0 0 1 2 2v.27c.6.34 1 .99 1 1.73a2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-.74.4-1.39 1-1.73V10a0 0 0 0 0 0 0H8a3 3 0 0 1-3-3V5.73A2 2 0 0 1 4 4a2 2 0 0 1 2-2m6 16a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2z"/>
-				</svg>
 				<span>{{ totalCount }} file changes<template v-if="currentBranch"> on <strong>{{ currentBranch.name }}</strong></template></span>
 			</span>
 		</div>
@@ -121,16 +127,17 @@
 			</div>
 		</div>
 
+		<ConfirmDialog
+			v-model:show="showDiscardConfirm"
+			title="Discard all changes"
+			message="This will run permanently discard all uncommitted changes. Are you sure?"
+			@confirm="discardAllChanges"
+		/>
+
 		<!-- Commit form -->
 		<div class="staging-panel__commit-form">
 			<div class="staging-panel__commit-header">
 				<span class="staging-panel__commit-label">Commit</span>
-				<button class="staging-panel__reset-btn" title="Reset" @click="commitSummary = ''; commitDescription = ''">
-					<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-					</svg>
-				</button>
-				<button class="staging-panel__commit-btn">Commit</button>
 			</div>
 
 			<n-input
@@ -148,29 +155,14 @@
 				:rows="3"
 				class="staging-panel__description-input"
 			/>
-
-			<div class="staging-panel__options">
-				<div
-					class="staging-panel__options-header"
-					@click="optionsExpanded = !optionsExpanded"
-				>
-					<svg
-						class="staging-panel__chevron"
-						:class="{'staging-panel__chevron--open': optionsExpanded}"
-						width="11" height="11" viewBox="0 0 24 24" fill="currentColor"
-					>
-						<path d="M7 10l5 5 5-5z"/>
-					</svg>
-					<span>Commit options</span>
-				</div>
-
-				<div v-if="optionsExpanded" class="staging-panel__options-body">
-					<label class="staging-panel__option-item">
-						<input type="checkbox" v-model="stageChangesToFavorite" />
-						<span>Stage Changes to Favorite</span>
-					</label>
-				</div>
-			</div>
+			<NButton
+				class="staging-panel__commit-btn"
+				type="success"
+				size="large"
+				secondary
+			>
+				Commit
+			</NButton>
 		</div>
 	</div>
 </template>
@@ -181,21 +173,22 @@ import {NButton, NInput} from 'naive-ui';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useBranches} from '@/composables/useBranches';
 import FileStatus from '../FileStatus.vue';
+import Icon from '../Icon.vue';
+import ConfirmDialog from '../ConfirmDialog.vue';
 
 const emit = defineEmits<{
 	openDiff: [filePath: string]
 }>();
 
-const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile} = useWorkingTree();
+const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges} = useWorkingTree();
 const {currentBranch} = useBranches();
 
 const activePath = ref<string | null>(null);
+const showDiscardConfirm = ref(false);
 const unstagedExpanded = ref(true);
 const stagedExpanded = ref(true);
-const optionsExpanded = ref(false);
 const commitSummary = ref('');
 const commitDescription = ref('');
-const stageChangesToFavorite = ref(false);
 
 const unstagedFiles = computed(() => status.value.unstaged);
 const stagedFiles = computed(() => status.value.staged);
@@ -299,6 +292,7 @@ loadStatus();
 
 	&__file-list {
 		padding: 2px 0;
+		min-height: 250px;
 	}
 
 	&__file {
@@ -356,7 +350,7 @@ loadStatus();
 	}
 
 	&__commit-label {
-		font-size: 12px;
+		font-size: 15px;
 		font-weight: 600;
 		color: #e5e7eb;
 		flex: 1;
@@ -380,49 +374,9 @@ loadStatus();
 		}
 	}
 
-	&__commit-btn {
-		padding: 4px 14px;
-		border: none;
-		border-radius: 4px;
-		background: #6f9ef8;
-		color: #0d0f11;
-		font-size: 12px;
-		font-weight: 700;
-		cursor: pointer;
-		transition: background 0.1s;
-
-		&:hover {
-			background: #8fb4ff;
-		}
-	}
-
 	&__summary-input,
 	&__description-input {
 		width: 100%;
-	}
-
-	&__options {
-		border-radius: 4px;
-		overflow: hidden;
-	}
-
-	&__options-header {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		padding: 4px 2px;
-		font-size: 11px;
-		color: #6b7280;
-		cursor: pointer;
-		user-select: none;
-
-		&:hover {
-			color: #9ca3af;
-		}
-	}
-
-	&__options-body {
-		padding: 4px 0;
 	}
 
 	&__option-item {

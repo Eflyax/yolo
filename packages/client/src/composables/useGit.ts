@@ -125,6 +125,11 @@ export function useGit() {
 		await callGit('restore', '--', filePath);
 	}
 
+	async function discardAllChanges(): Promise<void> {
+		await callGit('reset', '--hard', 'HEAD');
+		await callGit('clean', '-fd');
+	}
+
 	// ── Commit ────────────────────────────────────────────────────────────────
 
 	async function commit(message: string, options: {amend?: boolean} = {}): Promise<void> {
@@ -200,6 +205,7 @@ export function useGit() {
 		unstageFile,
 		unstageAll,
 		discardFile,
+		discardAllChanges,
 		commit,
 		createTag,
 		deleteTag,

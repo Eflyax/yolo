@@ -38,7 +38,7 @@
 						<path d="M7 10l5 5 5-5z"/>
 					</svg>
 					<span>LOCAL</span>
-					<span class="sidebar__section-count">{{ filteredLocalBranches.length }}</span>
+					<span class="sidebar__section-count">({{ filteredLocalBranches.length }})</span>
 				</div>
 
 				<template v-if="localExpanded">
@@ -67,7 +67,7 @@
 						<path d="M7 10l5 5 5-5z"/>
 					</svg>
 					<span>REMOTE</span>
-					<span class="sidebar__section-count">{{ filteredRemoteBranches.length }}</span>
+					<span class="sidebar__section-count">({{ filteredRemoteBranches.length }})</span>
 				</div>
 
 				<template v-if="remoteExpanded">
@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
-import {NButton, NInput} from 'naive-ui';
+import {NInput} from 'naive-ui';
 import BranchItem from './BranchItem.vue';
 import {useLayout} from '@/composables/useLayout';
 
@@ -210,12 +210,12 @@ const filteredRemoteBranches = computed(() => {
 	}
 
 	&__section {
+		cursor: pointer;
 		margin-bottom: 4px;
 	}
 
 	&__section-count {
-		margin-left: auto;
-		font-size: 10px;
+		margin-left: 10px;
 		color: #4b5563;
 	}
 
