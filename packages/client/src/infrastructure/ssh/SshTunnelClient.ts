@@ -8,6 +8,7 @@ import {useActivityLog} from '@/composables/useActivityLog';
 
 const REMOTE_BINARY_PATH = '~/.local/bin/gityak';
 const REMOTE_WORKER_VERSION = '1.0.0';
+const FORCE_PROVISION = true;
 
 export class SshTunnelClient implements ITransportClient {
 	private serverChild: Child | null = null;
@@ -54,7 +55,7 @@ export class SshTunnelClient implements ITransportClient {
 				`${REMOTE_BINARY_PATH} --version 2>/dev/null || echo NOT_INSTALLED`,
 			);
 
-			if (remoteVer.trim() === REMOTE_WORKER_VERSION) {
+			if (!FORCE_PROVISION && remoteVer.trim() === REMOTE_WORKER_VERSION) {
 				this.log({type: 'ssh', status: 'info', direction: 'response', message: `Remote worker up-to-date (v${REMOTE_WORKER_VERSION})`});
 				return;
 			}
@@ -63,6 +64,15 @@ export class SshTunnelClient implements ITransportClient {
 			await this.runSsh(`mkdir -p ~/.local/bin`);
 			await this.runScp(binaryPath, REMOTE_BINARY_PATH);
 			await this.runSsh(`chmod +x ${REMOTE_BINARY_PATH}`);
+
+			const verifyOutput = await this.runSsh(
+				`${REMOTE_BINARY_PATH} --version 2>&1 || echo EXEC_FAILED`,
+			);
+			if (verifyOutput.trim() === 'EXEC_FAILED' || verifyOutput.trim() === '') {
+				const archInfo = await this.runSsh(`uname -m 2>/dev/null || echo unknown`).catch(() => 'unknown');
+				throw new Error(`Binary not executable on remote (arch: ${archInfo.trim()}). Build the correct binary with: yarn workspace @git-yak/remote-worker build:linux`);
+			}
+
 			this.log({type: 'ssh', status: 'success', direction: 'response', message: 'Remote worker provisioned'});
 		}
 		catch (err: unknown) {

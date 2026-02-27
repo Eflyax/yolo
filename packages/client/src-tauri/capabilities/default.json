@@ -12,6 +12,13 @@
         { "name": "ssh", "cmd": "ssh", "args": true, "sidecar": false },
         { "name": "scp", "cmd": "scp", "args": true, "sidecar": false }
       ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        { "name": "ssh", "cmd": "ssh", "args": true, "sidecar": false },
+        { "name": "scp", "cmd": "scp", "args": true, "sidecar": false }
+      ]
     }
   ]
 }
