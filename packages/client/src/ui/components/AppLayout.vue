@@ -89,12 +89,16 @@ onMounted(() => {
 
 	.repository {
 		width: 100%;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
 	}
 }
 
 .layout-splitpanes {
 	width: 100%;
-	height: 100%;
+	flex: 1;
+	min-height: 0;
 }
 
 .pane-sidebar {

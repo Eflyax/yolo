@@ -10,115 +10,116 @@
 			</span>
 		</div>
 
-		<!-- Unstaged files -->
-		<div class="staging-panel__section">
-			<div
-				class="staging-panel__section-header"
-			>
-				<div @click="unstagedExpanded = !unstagedExpanded">
-					<svg
-						class="staging-panel__chevron"
-						:class="{'staging-panel__chevron--open': unstagedExpanded}"
-						width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
-					>
-						<path d="M7 10l5 5 5-5z"/>
-					</svg>
-					<span>Unstaged Files ({{ unstagedFiles.length }})</span>
-				</div>
-				<NButton
-					v-if="unstagedFiles.length"
-					class="staging-panel__stage-all"
-					size="tiny"
-					type="success"
-					secondary
-					@click="stageAll"
-				>
-					Stage all changes
-				</NButton>
-			</div>
-
-			<div v-if="unstagedExpanded" class="staging-panel__file-list">
+		<!-- File sections (scrollable) -->
+		<div class="staging-panel__files">
+			<!-- Unstaged files -->
+			<div class="staging-panel__section">
 				<div
-					v-for="file in unstagedFiles"
-					:key="file.path"
-					class="staging-panel__file"
-					:class="{'staging-panel__file--active': activePath === file.path}"
-					@click="activePath = file.path; emit('openDiff', file.path)"
+					class="staging-panel__section-header"
 				>
-					<div>
-						<FileStatus :status="file.status" />
-
-						<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+					<div @click="unstagedExpanded = !unstagedExpanded">
+						<svg
+							class="staging-panel__chevron"
+							:class="{'staging-panel__chevron--open': unstagedExpanded}"
+							width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+						>
+							<path d="M7 10l5 5 5-5z"/>
+						</svg>
+						<span>Unstaged Files ({{ unstagedFiles.length }})</span>
 					</div>
-
 					<NButton
+						v-if="unstagedFiles.length"
+						class="staging-panel__stage-all"
 						size="tiny"
-						class="staging-panel__stage-action"
 						type="success"
 						secondary
-						@click.stop="stageFile(file.path)"
+						@click="stageAll"
 					>
-						Stage file
+						Stage all changes
 					</NButton>
 				</div>
-			</div>
-		</div>
 
-		<!-- Staged files -->
-		<div class="staging-panel__section">
-			<div
-				class="staging-panel__section-header"
-			>
-				<div @click="stagedExpanded = !stagedExpanded">
-					<svg
-						class="staging-panel__chevron"
-						:class="{'staging-panel__chevron--open': stagedExpanded}"
-						width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+				<div v-if="unstagedExpanded" class="staging-panel__file-list">
+					<div
+						v-for="file in unstagedFiles"
+						:key="file.path"
+						class="staging-panel__file"
+						:class="{'staging-panel__file--active': activePath === file.path}"
+						@click="activePath = file.path; emit('openDiff', file.path)"
 					>
-						<path d="M7 10l5 5 5-5z"/>
-					</svg>
-					<span>Staged Files ({{ stagedFiles.length }})</span>
-				</div>
-				<NButton
-					v-if="stagedFiles.length"
-					size="tiny"
-					secondary
-					type="error"
-					class="staging-panel__stage-all"
-					@click="unstageAll"
-				>
-					Unstage all changes
-				</NButton>
-			</div>
+						<div>
+							<FileStatus :status="file.status" />
 
-			<div v-if="stagedExpanded" class="staging-panel__file-list">
-				<div
-					v-for="file in stagedFiles"
-					:key="file.path"
-					class="staging-panel__file"
-					:class="{'staging-panel__file--active': activePath === file.path}"
-					@click="activePath = file.path; emit('openDiff', file.path)"
-				>
-					<div>
-						<FileStatus :status="file.status" />
+							<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+						</div>
 
-						<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+						<NButton
+							size="tiny"
+							class="staging-panel__stage-action"
+							type="success"
+							secondary
+							@click.stop="stageFile(file.path)"
+						>
+							Stage file
+						</NButton>
 					</div>
+				</div>
+			</div>
 
+			<!-- Staged files -->
+			<div class="staging-panel__section">
+				<div
+					class="staging-panel__section-header"
+				>
+					<div @click="stagedExpanded = !stagedExpanded">
+						<svg
+							class="staging-panel__chevron"
+							:class="{'staging-panel__chevron--open': stagedExpanded}"
+							width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+						>
+							<path d="M7 10l5 5 5-5z"/>
+						</svg>
+						<span>Staged Files ({{ stagedFiles.length }})</span>
+					</div>
 					<NButton
+						v-if="stagedFiles.length"
 						size="tiny"
-						class="staging-panel__stage-action"
-						type="error"
 						secondary
-						@click.stop="unstageFile(file.path)"
+						type="error"
+						class="staging-panel__stage-all"
+						@click="unstageAll"
 					>
-						Unstage file
+						Unstage all changes
 					</NButton>
+				</div>
+
+				<div v-if="stagedExpanded" class="staging-panel__file-list">
+					<div
+						v-for="file in stagedFiles"
+						:key="file.path"
+						class="staging-panel__file"
+						:class="{'staging-panel__file--active': activePath === file.path}"
+						@click="activePath = file.path; emit('openDiff', file.path)"
+					>
+						<div>
+							<FileStatus :status="file.status" />
+
+							<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+						</div>
+
+						<NButton
+							size="tiny"
+							class="staging-panel__stage-action"
+							type="error"
+							secondary
+							@click.stop="unstageFile(file.path)"
+						>
+							Unstage file
+						</NButton>
+					</div>
 				</div>
 			</div>
 		</div>
-
-		<div class="staging-panel__spacer" />
 
 		<!-- Commit form -->
 		<div class="staging-panel__commit-form">
@@ -249,9 +250,14 @@ loadStatus();
 		}
 	}
 
+	&__files {
+		flex: 1;
+		overflow-y: auto;
+		min-height: 0;
+	}
+
 	&__section {
 		border-bottom: 1px solid #1e2228;
-		flex-shrink: 0;
 	}
 
 	&__section-header {
@@ -293,7 +299,6 @@ loadStatus();
 
 	&__file-list {
 		padding: 2px 0;
-		min-height: 300px;
 	}
 
 	&__file {
@@ -333,10 +338,6 @@ loadStatus();
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	&__spacer {
-		flex: 1;
 	}
 
 	&__commit-form {
