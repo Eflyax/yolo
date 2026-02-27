@@ -1,13 +1,14 @@
 <template>
 	<div class="app-layout">
 		<ProjectsSidebar />
-		 <div class="repository">
-			<Toolbar />
+		<div class="repository">
+			 <Toolbar :hide-actions="isVisible" />
 
-			<Splitpanes
-				v-if="currentProject"
-				class="layout-splitpanes"
-			>
+			<ProjectManager v-if="!currentProject" />
+
+			<ConnectionStatus v-else-if="isVisible" />
+
+			<Splitpanes v-else class="layout-splitpanes">
 				<Pane
 					:size="sidebarCollapsed ? 2 : 17"
 					:min-size="sidebarCollapsed ? 2 : 12"
@@ -43,8 +44,7 @@
 					/>
 				</Pane>
 			</Splitpanes>
-			<ProjectManager v-else />
-		 </div>
+		</div>
 	</div>
 
 	<NDrawer
@@ -71,19 +71,23 @@ import StagingPanel from './FileDiff/StagingPanel.vue';
 import ProjectsSidebar from './ProjectsSidebar.vue';
 import Toolbar from './Toolbar.vue';
 import ActivityLog from './ActivityLog/ActivityLog.vue';
+import ConnectionStatus from './ConnectionStatus/ConnectionStatus.vue';
+import ProjectManager from './ProjectManager/ProjectManager.vue';
 import {useProject} from '@/composables/useProject';
 import {useCommits} from '@/composables/useCommits';
 import {useLayout} from '@/composables/useLayout';
 import {useGit} from '@/composables/useGit';
-import ProjectManager from './ProjectManager/ProjectManager.vue';
+import {useConnectionStatus} from '@/composables/useConnectionStatus';
 
 const {openFileDiff, closeFileDiff, sidebarCollapsed, showActivityLog} = useLayout();
+const {isVisible} = useConnectionStatus();
 const {activePath} = useGit();
 
 function handleClose(): void {
 	activePath.value = null;
 	closeFileDiff();
 }
+
 const {currentProject, openLastOpenProject} = useProject();
 const {selectedHashes, selectCommit} = useCommits();
 
@@ -96,7 +100,6 @@ if (!selectedHashes.value.length) {
 onMounted(() => {
 	openLastOpenProject();
 });
-
 </script>
 
 <style scoped lang="scss">
@@ -135,9 +138,5 @@ onMounted(() => {
 	background-color: #111318;
 	border-left: 1px solid #1e2228;
 	overflow: hidden;
-}
-
-.project-manager {
-	margin: 10px auto;
 }
 </style>

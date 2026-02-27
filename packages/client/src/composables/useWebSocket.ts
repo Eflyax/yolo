@@ -4,12 +4,14 @@ import {SshTunnelClient} from '@/infrastructure/ssh/SshTunnelClient';
 import type {ITransportClient} from '@/infrastructure/ITransportClient';
 import {EConnectionStatus, ENetworkCommand, EServerType} from '@/domain';
 import type {IProject} from '@/domain';
+import {useConnectionStatus} from '@/composables/useConnectionStatus';
 
 const client = ref<ITransportClient | null>(null);
 const status = ref<EConnectionStatus>(EConnectionStatus.Idle);
 
 export function useWebSocket() {
 	async function connect(project: IProject): Promise<void> {
+		useConnectionStatus().reset();
 		client.value?.close();
 		status.value = EConnectionStatus.Connecting;
 

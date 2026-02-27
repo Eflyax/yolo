@@ -1,7 +1,7 @@
 <template>
 <div class="toolbar">
 	<span class="toolbar__branch-path">
-		<template v-if="currentProject">
+		<template v-if="currentProject && !hideActions">
 			<span class="toolbar__project">
 				{{ currentProject.alias }}
 			</span>
@@ -11,7 +11,7 @@
 	</span>
 
 	<div class="toolbar__actions">
-		<template v-if="currentProject">
+		<template v-if="currentProject && !isConnecting && !hideActions">
 			<NButton
 				v-for="action of actions"
 				:key="action.label"
@@ -58,6 +58,7 @@ import {useCommits} from '@/composables/useCommits';
 import {useStash} from '@/composables/useStash';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useLayout} from '@/composables/useLayout';
+import {useConnectionStatus} from '@/composables/useConnectionStatus';
 import ReferenceModal from './ReferenceModal.vue';
 import {EReferenceModalType} from '@/domain';
 
@@ -68,10 +69,17 @@ const
 	{selectedHashes, loadCommits} = useCommits(),
 	{stashes, stashSave, stashPop} = useStash(),
 	{loadStatus} = useWorkingTree(),
-	{toggleActivityLog} = useLayout();
+	{toggleActivityLog} = useLayout(),
+	{isConnecting} = useConnectionStatus();
 
 const message = useMessage();
 const showBranchModal = ref(false);
+
+const props = defineProps<{
+	hideActions: {
+		type: Boolean
+	},
+}>();
 
 async function handlePull(): Promise<void> {
 	try {

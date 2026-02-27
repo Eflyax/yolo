@@ -5,6 +5,7 @@ import {WebSocketClient} from '../websocket/WebSocketClient';
 import type {ITransportClient} from '../ITransportClient';
 import {ENetworkCommand} from '@/domain';
 import {useActivityLog} from '@/composables/useActivityLog';
+import {useConnectionStatus} from '@/composables/useConnectionStatus';
 
 const REMOTE_BINARY_PATH = '~/.local/bin/gityak';
 const REMOTE_WORKER_VERSION = '1.0.0';
@@ -17,6 +18,7 @@ export class SshTunnelClient implements ITransportClient {
 	private localPort = 0;
 	private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 	private readonly log = useActivityLog().addLog;
+	private readonly cs = useConnectionStatus();
 
 	constructor(
 		private readonly host: string,
@@ -26,11 +28,14 @@ export class SshTunnelClient implements ITransportClient {
 	) {}
 
 	async connect(): Promise<void> {
+		this.cs.setConnectingTo(`${this.user}@${this.host}:${this.sshPort}`);
+		this.cs.setPhase('connecting');
 		this.log({type: 'ssh', status: 'info', direction: 'request', message: `Connecting to ${this.user}@${this.host}:${this.sshPort}`});
 
 		try {
 			const binaryPath = await invoke<string>('get_server_binary_path');
 
+			this.cs.setPhase('checking');
 			await this.provision(binaryPath);
 
 			const remotePort = await this.startServer();
@@ -42,9 +47,12 @@ export class SshTunnelClient implements ITransportClient {
 			this.wsClient = new WebSocketClient(`ws://127.0.0.1:${this.localPort}`);
 
 			this.startHeartbeat();
+			this.cs.reset();
 		}
 		catch (err: unknown) {
-			this.log({type: 'ssh', status: 'error', direction: 'response', message: err instanceof Error ? err.message : String(err)});
+			const msg = err instanceof Error ? err.message : String(err);
+			this.log({type: 'ssh', status: 'error', direction: 'response', message: msg});
+			this.cs.setError(msg);
 			throw err;
 		}
 	}
@@ -57,12 +65,19 @@ export class SshTunnelClient implements ITransportClient {
 
 			if (!FORCE_PROVISION && remoteVer.trim() === REMOTE_WORKER_VERSION) {
 				this.log({type: 'ssh', status: 'info', direction: 'response', message: `Remote worker up-to-date (v${REMOTE_WORKER_VERSION})`});
+				this.cs.setPhase('starting');
 				return;
 			}
 
 			this.log({type: 'ssh', status: 'info', direction: 'request', message: 'Uploading remote worker binary…'});
+			this.cs.setPhase('uploading');
+
+			const localSize = await invoke<number>('get_file_size', {path: binaryPath});
+			this.cs.setUploadTotal(localSize);
+			this.cs.setUploadProgress(0);
+
 			await this.runSsh(`mkdir -p ~/.local/bin`);
-			await this.runScp(binaryPath, REMOTE_BINARY_PATH);
+			await this.runScpWithProgress(binaryPath, REMOTE_BINARY_PATH, localSize);
 			await this.runSsh(`chmod +x ${REMOTE_BINARY_PATH}`);
 
 			const verifyOutput = await this.runSsh(
@@ -82,6 +97,7 @@ export class SshTunnelClient implements ITransportClient {
 	}
 
 	private startServer(): Promise<number> {
+		this.cs.setPhase('starting');
 		this.log({type: 'ssh', status: 'info', direction: 'request', message: `Starting remote worker on ${this.host}`});
 
 		return new Promise((resolve, reject) => {
@@ -134,6 +150,7 @@ export class SshTunnelClient implements ITransportClient {
 	}
 
 	private createTunnel(remotePort: number): Promise<void> {
+		this.cs.setPhase('tunneling');
 		this.log({type: 'ssh', status: 'info', direction: 'request', message: `Creating SSH tunnel :${this.localPort} → :${remotePort}`});
 
 		return new Promise((resolve, reject) => {
@@ -191,6 +208,58 @@ export class SshTunnelClient implements ITransportClient {
 		}
 		this.log({type: 'ssh', status: 'success', direction: 'response', message: `ssh ok: ${r.stdout.trim().slice(0, 120)}`});
 		return r.stdout;
+	}
+
+	/** Like runSsh but without activity log — used for progress polling */
+	private async execSsh(cmd: string): Promise<string> {
+		const r = await Command.create('ssh', this.buildSshArgs(cmd)).execute();
+		if (r.code !== 0) throw new Error(r.stderr?.trim() || `exit ${r.code}`);
+		return r.stdout;
+	}
+
+	private async runScpWithProgress(localPath: string, remotePath: string, localSize: number): Promise<void> {
+		const args = [
+			'-P', String(this.sshPort),
+			'-o', 'BatchMode=yes',
+			'-o', 'StrictHostKeyChecking=accept-new',
+			...(this.keyPath ? ['-i', this.keyPath] : []),
+			localPath,
+			`${this.user}@${this.host}:${remotePath}`,
+		];
+
+		let pollInterval: ReturnType<typeof setInterval> | null = null;
+		let done = false;
+
+		const scpPromise = Command.create('scp', args).execute();
+
+		if (localSize > 0) {
+			const CHUNK = 1 * 1024 * 1024;
+
+			pollInterval = setInterval(async () => {
+				if (done) return;
+				try {
+					const remoteSizeStr = await this.execSsh(`stat -c%s ${remotePath} 2>/dev/null || echo 0`);
+					const remoteSize = parseInt(remoteSizeStr) || 0;
+					const rounded = Math.floor(remoteSize / CHUNK) * CHUNK;
+					const pct = Math.min(Math.floor(rounded / localSize * 100), 99);
+					this.cs.setUploadProgress(pct);
+				}
+				catch {
+					// ignore polling errors
+				}
+			}, 1000);
+		}
+
+		try {
+			const r = await scpPromise;
+			if (r.code !== 0) throw new Error(r.stderr || 'SCP failed');
+		}
+		finally {
+			done = true;
+			if (pollInterval !== null) clearInterval(pollInterval);
+		}
+
+		this.cs.setUploadProgress(100);
 	}
 
 	private async runScp(localPath: string, remotePath: string): Promise<void> {
