@@ -1,12 +1,15 @@
 import {ref, readonly} from 'vue';
 import {WebSocketClient} from '@/infrastructure/websocket/WebSocketClient';
-import {EConnectionStatus, ENetworkCommand} from '@/domain';
+import {SshClient} from '@/infrastructure/ssh/SshClient';
+import type {ITransportClient} from '@/infrastructure/ITransportClient';
+import {EConnectionStatus, ENetworkCommand, EServerType} from '@/domain';
+import type {IProject} from '@/domain';
 
-const client = ref<WebSocketClient | null>(null);
+const client = ref<ITransportClient | null>(null);
 const status = ref<EConnectionStatus>(EConnectionStatus.Idle);
 
 export function useWebSocket() {
-	function connect(url: string): void {
+	function connect(project: IProject): void {
 		if (client.value) {
 			client.value.close();
 		}
@@ -14,7 +17,18 @@ export function useWebSocket() {
 		status.value = EConnectionStatus.Connecting;
 
 		try {
-			client.value = new WebSocketClient(url);
+			if (project.serverType === EServerType.SSH) {
+				client.value = new SshClient(
+					project.server,
+					project.port,
+					project.sshUser ?? '',
+					project.sshKeyPath,
+				);
+			}
+			else {
+				client.value = new WebSocketClient(`ws://${project.server}:${project.port}`);
+			}
+
 			status.value = EConnectionStatus.Connected;
 		}
 		catch {
@@ -30,7 +44,7 @@ export function useWebSocket() {
 
 	function call(command: ENetworkCommand, payload: Record<string, unknown>): Promise<unknown> {
 		if (!client.value) {
-			return Promise.reject(new Error('WebSocket not connected'));
+			return Promise.reject(new Error('Not connected'));
 		}
 
 		return client.value.call(command, payload);

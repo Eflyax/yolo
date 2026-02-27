@@ -7,6 +7,7 @@ export {
 	EGitErrorCode,
 	EConnectionStatus,
 	EReferenceModalType,
+	EServerType,
 } from './enums';
 
 // ── Models ────────────────────────────────────────────────────────────────────

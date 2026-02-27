@@ -1,9 +1,11 @@
+import type {ITransportClient} from '../ITransportClient';
+
 type PendingRequest = {
 	resolve: (value: unknown) => void
 	reject: (reason: unknown) => void
 };
 
-export class WebSocketClient {
+export class WebSocketClient implements ITransportClient {
 	private readonly ws: WebSocket;
 	private readonly pending = new Map<string, PendingRequest>();
 	private readonly queue: string[] = [];

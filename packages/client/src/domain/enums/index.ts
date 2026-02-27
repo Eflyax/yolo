@@ -56,3 +56,8 @@ export enum EReferenceModalType {
 	Tag = 'tag',
 	Stash = 'stash',
 }
+
+export enum EServerType {
+	Bun = 'bun',
+	SSH = 'ssh',
+}

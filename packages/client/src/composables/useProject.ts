@@ -1,13 +1,21 @@
 import {ref, readonly} from 'vue';
 import type {IProject, IProjectGroup} from '@/domain';
+import {EServerType} from '@/domain';
 import {useWebSocket} from '@/composables/useWebSocket';
 const PROJECTS_KEY = 'git-yak:projects';
 const GROUPS_KEY = 'git-yak:groups';
 const LAST_OPEN_PROJECT = 'git-yak:lastProjectId';
 
-const projects = ref<IProject[]>(loadFromStorage<IProject[]>(PROJECTS_KEY, []));
+const projects = ref<IProject[]>(loadFromStorage<IProject[]>(PROJECTS_KEY, []).map(migrateProject));
 const groups = ref<IProjectGroup[]>(loadFromStorage<IProjectGroup[]>(GROUPS_KEY, []));
 const currentProject = ref<IProject | null>(null);
+
+function migrateProject(p: IProject): IProject {
+	return {
+		...p,
+		serverType: p.serverType ?? EServerType.Bun,
+	};
+}
 
 function loadFromStorage<T>(key: string, fallback: T): T {
 	try {
@@ -51,7 +59,7 @@ export function useProject() {
 		localStorage.setItem(LAST_OPEN_PROJECT, project.id);
 		currentProject.value = updated ?? project;
 
-		connect(`ws://${project.server}:${project.port}`);
+		connect(project);
 	}
 
 	function closeProject(): void {

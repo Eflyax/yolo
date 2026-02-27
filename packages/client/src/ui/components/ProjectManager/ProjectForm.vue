@@ -28,24 +28,122 @@
 				</n-radio-group>
 			</n-form-item>
 
-			<n-form-item v-if="!isLocal" label="Server">
-				<n-input-group>
-					<n-input
-						test-id="server-input"
-						v-model:value="form.server"
-						placeholder="192.168.1.100"
-						style="flex: 1;"
-					/>
-					<n-input-number
-						test-id="port-input"
-						v-model:value="form.port"
-						placeholder="3000"
-						:min="1"
-						:max="65535"
-						style="width: 120px;"
-					/>
-				</n-input-group>
-			</n-form-item>
+			<template v-if="!isLocal">
+				<n-form-item v-if="isTauri" label="Connection">
+					<n-radio-group v-model:value="form.serverType">
+						<n-radio-button :value="EServerType.Bun">
+							Bun server
+						</n-radio-button>
+						<n-radio-button :value="EServerType.SSH">
+							SSH
+						</n-radio-button>
+					</n-radio-group>
+				</n-form-item>
+
+				<template v-if="form.serverType === EServerType.Bun">
+					<n-form-item label="Server">
+						<n-input-group>
+							<n-input
+								test-id="server-input"
+								v-model:value="form.server"
+								placeholder="192.168.1.100"
+								style="flex: 1;"
+							/>
+							<n-input-number
+								test-id="port-input"
+								v-model:value="form.port"
+								placeholder="3000"
+								:min="1"
+								:max="65535"
+								style="width: 120px;"
+							/>
+						</n-input-group>
+					</n-form-item>
+
+					<n-form-item label="SSH Private Key">
+						<n-input
+							test-id="ssh-key-input"
+							v-model:value="form.sshPrivateKey"
+							type="textarea"
+							placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+							:autosize="{minRows: 3, maxRows: 8}"
+							:input-props="{spellcheck: false, autocomplete: 'off'}"
+						/>
+					</n-form-item>
+				</template>
+
+				<template v-else>
+					<n-form-item label="SSH Host">
+						<n-input-group>
+							<n-input
+								test-id="server-input"
+								v-model:value="form.server"
+								placeholder="192.168.1.100"
+								style="flex: 1;"
+							/>
+							<n-input-number
+								test-id="port-input"
+								v-model:value="form.port"
+								placeholder="22"
+								:min="1"
+								:max="65535"
+								style="width: 120px;"
+							/>
+						</n-input-group>
+					</n-form-item>
+
+					<n-form-item label="SSH User">
+						<n-input
+							test-id="ssh-user-input"
+							v-model:value="form.sshUser"
+							placeholder="root"
+						/>
+					</n-form-item>
+
+					<n-form-item label="SSH Key Path">
+						<n-input-group>
+							<n-input
+								test-id="ssh-key-path-input"
+								v-model:value="form.sshKeyPath"
+								placeholder="~/.ssh/id_ed25519"
+								style="flex: 1;"
+							/>
+							<n-button
+								v-if="detectedKeys.length > 0"
+								ghost
+								@click="showKeySelect = true"
+							>
+								Detected keys
+							</n-button>
+							<n-button
+								ghost
+								:loading="detectingKeys"
+								@click="detectKeys"
+							>
+								Detect
+							</n-button>
+						</n-input-group>
+					</n-form-item>
+
+					<n-modal
+						v-model:show="showKeySelect"
+						title="Select SSH key"
+						preset="card"
+						style="width: 480px;"
+					>
+						<n-list bordered>
+							<n-list-item
+								v-for="key in detectedKeys"
+								:key="key"
+								style="cursor: pointer;"
+								@click="selectKey(key)"
+							>
+								{{ key }}
+							</n-list-item>
+						</n-list>
+					</n-modal>
+				</template>
+			</template>
 
 			<n-form-item label="Path">
 				<n-input-group>
@@ -53,10 +151,12 @@
 						test-id="path-input"
 						:value="form.path"
 						placeholder="/path/to/repo"
-						:disabled="true"
+						:disabled="form.serverType !== EServerType.SSH"
 						style="flex: 1;"
+						@update:value="form.path = $event"
 					/>
 					<n-button
+						v-if="form.serverType !== EServerType.SSH"
 						test-id="browse-folder-btn"
 						type="info"
 						ghost
@@ -65,17 +165,6 @@
 						Browse…
 					</n-button>
 				</n-input-group>
-			</n-form-item>
-
-			<n-form-item label="SSH Private Key">
-				<n-input
-					test-id="ssh-key-input"
-					v-model:value="form.sshPrivateKey"
-					type="textarea"
-					placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
-					:autosize="{minRows: 3, maxRows: 8}"
-					:input-props="{spellcheck: false, autocomplete: 'off'}"
-				/>
 			</n-form-item>
 
 			<n-form-item label="Group">
@@ -146,13 +235,18 @@ import {
 	NRadioGroup,
 	NRadioButton,
 	NSelect,
+	NList,
+	NListItem,
 } from 'naive-ui';
+import {invoke} from '@tauri-apps/api/core';
 import {useProject} from '@/composables/useProject';
 import type {IProject} from '@/domain';
+import {EServerType} from '@/domain';
 import Icon from '@/ui/components/Icon.vue';
 import FileBrowser from './FileBrowser.vue';
 
 const DEFAULT_PORT = 3000;
+const DEFAULT_SSH_PORT = 22;
 
 const PRESET_COLORS = [
 	'#6f9ef8',
@@ -165,11 +259,16 @@ const PRESET_COLORS = [
 	'#f472b6',
 ] as const;
 
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
 interface IFormData {
 	alias: string;
 	path: string;
 	server: string;
 	port: number;
+	serverType: EServerType;
+	sshUser: string;
+	sshKeyPath: string;
 	sshPrivateKey: string;
 	groupId: string | null;
 	color: string;
@@ -186,13 +285,17 @@ const emit = defineEmits<{
 
 const {groups, addProject, updateProject} = useProject();
 const showBrowser = ref(false);
+const showKeySelect = ref(false);
+const detectedKeys = ref<string[]>([]);
+const detectingKeys = ref(false);
 const isEdit = computed(() => !!props.project?.id);
 
 const isLocal = computed({
 	get: () => form.server === 'localhost',
 	set: (value: boolean) => {
 		form.server = value ? 'localhost' : '';
-		form.port = DEFAULT_PORT;
+		form.port = value ? DEFAULT_PORT : DEFAULT_SSH_PORT;
+		form.serverType = EServerType.Bun;
 	},
 });
 
@@ -206,6 +309,9 @@ function makeForm(project?: IProject | null): IFormData {
 		path: project?.path ?? '',
 		server: project?.server ?? 'localhost',
 		port: project?.port ?? DEFAULT_PORT,
+		serverType: project?.serverType ?? EServerType.Bun,
+		sshUser: project?.sshUser ?? 'root',
+		sshKeyPath: project?.sshKeyPath ?? '',
 		sshPrivateKey: project?.sshPrivateKey ?? '',
 		groupId: project?.groupId ?? null,
 		color: project?.color ?? PRESET_COLORS[0],
@@ -213,6 +319,15 @@ function makeForm(project?: IProject | null): IFormData {
 }
 
 const form = reactive<IFormData>(makeForm(props.project));
+
+watch(() => form.serverType, (type) => {
+	if (type === EServerType.SSH && form.port === DEFAULT_PORT) {
+		form.port = DEFAULT_SSH_PORT;
+	}
+	else if (type === EServerType.Bun && form.port === DEFAULT_SSH_PORT) {
+		form.port = DEFAULT_PORT;
+	}
+});
 
 watch(() => props.project, (p) => {
 	Object.assign(form, makeForm(p));
@@ -223,15 +338,49 @@ function onPathSelected(path: string): void {
 	showBrowser.value = false;
 }
 
+async function detectKeys(): Promise<void> {
+	if (!isTauri) return;
+
+	detectingKeys.value = true;
+
+	try {
+		const keys = await invoke<string[]>('detect_ssh_keys');
+		detectedKeys.value = keys;
+
+		if (keys.length === 1) {
+			form.sshKeyPath = keys[0];
+		}
+		else if (keys.length > 1) {
+			showKeySelect.value = true;
+		}
+	}
+	catch {
+		// Ignore
+	}
+	finally {
+		detectingKeys.value = false;
+	}
+}
+
+function selectKey(key: string): void {
+	form.sshKeyPath = key;
+	showKeySelect.value = false;
+}
+
 function handleSave(): void {
 	if (!form.alias || !form.path) return;
+
+	const isSsh = form.serverType === EServerType.SSH;
 
 	const data = {
 		alias: form.alias,
 		path: form.path,
 		server: form.server,
 		port: form.port,
-		sshPrivateKey: form.sshPrivateKey || undefined,
+		serverType: isTauri ? form.serverType : EServerType.Bun,
+		sshUser: isSsh ? (form.sshUser || undefined) : undefined,
+		sshKeyPath: isSsh ? (form.sshKeyPath || undefined) : undefined,
+		sshPrivateKey: !isSsh ? (form.sshPrivateKey || undefined) : undefined,
 		groupId: form.groupId ?? undefined,
 		color: form.color,
 	};
