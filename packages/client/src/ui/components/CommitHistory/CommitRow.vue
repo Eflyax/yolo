@@ -1,6 +1,6 @@
 <template>
 	<div
-		test-id="commit-row"
+		:test-id="`commit-row${commit.isStash ? '-stash' : ''}`"
 		class="commit-row"
 		:class="{'commit-row--selected': isSelected}"
 		:style="{
@@ -33,7 +33,6 @@
 <script setup lang="ts">
 import {computed} from 'vue';
 import type {ICommit} from '@/domain';
-import {EFileStatus} from '@/domain';
 import {getGraphColor} from './graphColors';
 import CommitFileStats from '@/ui/components/CommitFileStats.vue';
 import {useWorkingTree} from '@/composables/useWorkingTree';

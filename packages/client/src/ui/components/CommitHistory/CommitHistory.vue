@@ -51,6 +51,14 @@
 			</div>
 		</div>
 	</div>
+
+	<ReferenceModal
+		v-model:show="showReferenceModal"
+		:type="referenceModalType"
+		mode="create"
+		:commit-hash="referenceModalCommitHash"
+		@done="refresh"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -60,12 +68,14 @@ import CommitGraph from './CommitGraph.vue';
 import CommitRow from './CommitRow.vue';
 import CommitRefsRow from './CommitRefsRow.vue';
 import Icon from '@/ui/components/Icon.vue';
+import ReferenceModal from '@/ui/components/ReferenceModal.vue';
 import {useCommits} from '@/composables/useCommits';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useStash} from '@/composables/useStash';
 import {useBranches} from '@/composables/useBranches';
 import {useProject} from '@/composables/useProject';
 import {useLayout} from '@/composables/useLayout';
+import {useContextMenu} from '@/composables/useContextMenu';
 import type {ICommit} from '@/domain';
 
 const ROW_HEIGHT = 28;
@@ -78,6 +88,8 @@ const {loadStashes} = useStash();
 const {loadBranches} = useBranches();
 const {currentProject} = useProject();
 const {loading} = useLayout();
+
+const {contextMenuCommit, showReferenceModal, referenceModalType, referenceModalCommitHash} = useContextMenu();
 
 const scrollEl = ref<HTMLElement | null>(null);
 
@@ -115,8 +127,8 @@ function handleSelectCommit(commit: ICommit): void {
 	selectCommit(commit.hash);
 }
 
-function onContextMenu(_commit: ICommit, _event: MouseEvent): void {
-	// context menu – Phase 5
+function onContextMenu(commit: ICommit, event: MouseEvent): void {
+	contextMenuCommit({e: event, commit});
 }
 
 onMounted(refresh);

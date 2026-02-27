@@ -55,6 +55,7 @@
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
 						@click="activePath = file.path; emit('openDiff', file.path)"
+						@contextmenu.prevent="contextMenuFile($event, file.path)"
 					>
 						<div>
 							<FileStatus :status="file.status" />
@@ -170,6 +171,8 @@
 				type="success"
 				size="large"
 				secondary
+				:disabled="!stagedFiles.length || !commitSummary.trim()"
+				@click="handleCommit"
 			>
 				Commit
 			</NButton>
@@ -182,6 +185,8 @@ import {ref, computed} from 'vue';
 import {NButton, NInput} from 'naive-ui';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useBranches} from '@/composables/useBranches';
+import {useGit} from '@/composables/useGit';
+import {useContextMenu} from '@/composables/useContextMenu';
 import FileStatus from '../FileStatus.vue';
 import Icon from '../Icon.vue';
 import ConfirmDialog from '../ConfirmDialog.vue';
@@ -192,6 +197,8 @@ const emit = defineEmits<{
 
 const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges} = useWorkingTree();
 const {currentBranch} = useBranches();
+const {commit} = useGit();
+const {contextMenuFile} = useContextMenu();
 
 const activePath = ref<string | null>(null);
 const showDiscardConfirm = ref(false);
@@ -216,6 +223,16 @@ function fileName(path: string): string {
 	const parts = path.split('/');
 
 	return parts[parts.length - 1] ?? path;
+}
+
+async function handleCommit(): Promise<void> {
+	const message = commitDescription.value.trim()
+		? `${commitSummary.value.trim()}\n\n${commitDescription.value.trim()}`
+		: commitSummary.value.trim();
+	await commit(message);
+	commitSummary.value = '';
+	commitDescription.value = '';
+	await loadStatus();
 }
 
 loadStatus();
