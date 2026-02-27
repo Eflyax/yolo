@@ -36,19 +36,21 @@
 					:class="{'staging-panel__file--active': activePath === file.path}"
 					@click="activePath = file.path; emit('openDiff', file.path)"
 				>
-					<input
-						type="checkbox"
-						class="staging-panel__checkbox"
-						:checked="false"
+					<div>
+						<FileStatus :status="file.status" />
+
+						<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+					</div>
+
+					<NButton
+						size="tiny"
+						class="staging-panel__stage-action"
+						type="success"
+						secondary
 						@click.stop="handleStageFile(file.path)"
-					/>
-					<span class="staging-panel__file-status" :class="`staging-panel__file-status--${file.status.toLowerCase()}`">
-						{{ file.status }}
-					</span>
-					<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
-				</div>
-				<div v-if="unstagedFiles.length === 0" class="staging-panel__empty-section">
-					No unstaged files
+					>
+						Stage file
+					</NButton>
 				</div>
 			</div>
 		</div>
@@ -78,19 +80,21 @@
 					:class="{'staging-panel__file--active': activePath === file.path}"
 					@click="activePath = file.path; emit('openDiff', file.path)"
 				>
-					<input
-						type="checkbox"
-						class="staging-panel__checkbox"
-						:checked="true"
+					<div>
+						<FileStatus :status="file.status" />
+
+						<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
+					</div>
+
+					<NButton
+						size="tiny"
+						class="staging-panel__stage-action"
+						type="error"
+						secondary
 						@click.stop="handleUnstageFile(file.path)"
-					/>
-					<span class="staging-panel__file-status" :class="`staging-panel__file-status--${file.status.toLowerCase()}`">
-						{{ file.status }}
-					</span>
-					<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
-				</div>
-				<div v-if="stagedFiles.length === 0" class="staging-panel__empty-section">
-					No staged files
+					>
+						Unstage file
+					</NButton>
 				</div>
 			</div>
 		</div>
@@ -153,9 +157,10 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
-import {NInput} from 'naive-ui';
+import {NButton, NInput} from 'naive-ui';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useBranches} from '@/composables/useBranches';
+import FileStatus from '../FileStatus.vue';
 
 const emit = defineEmits<{
 	openDiff: [filePath: string]
@@ -264,9 +269,9 @@ loadStatus();
 		align-items: center;
 		gap: 5px;
 		padding: 6px 10px;
-		font-size: 11.5px;
-		font-weight: 600;
-		color: #9ca3af;
+		font-size: 13px;
+		border-bottom: 1px solid #1e2228;
+		color: #fff;
 		cursor: pointer;
 		user-select: none;
 
@@ -277,8 +282,8 @@ loadStatus();
 
 	&__count {
 		margin-left: auto;
-		font-size: 10px;
-		color: #4b5563;
+		font-size: 11px;
+		color: #fff;
 		background: rgba(255, 255, 255, 0.06);
 		padding: 1px 6px;
 		border-radius: 8px;
@@ -299,18 +304,25 @@ loadStatus();
 
 	&__file-list {
 		padding: 2px 0;
+		min-height: 300px;
 	}
 
 	&__file {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 6px;
 		padding: 3px 10px 3px 20px;
+		height: 30px;
 		cursor: pointer;
 		border-radius: 2px;
 
 		&:hover {
 			background-color: rgba(255, 255, 255, 0.04);
+
+			.staging-panel__stage-action {
+				display: inline-flex;
+			}
 		}
 
 		&--active {
@@ -318,23 +330,12 @@ loadStatus();
 		}
 	}
 
-	&__checkbox {
-		flex-shrink: 0;
-		cursor: pointer;
-		accent-color: #6f9ef8;
+	&__stage-action {
+		display: none;
 	}
 
-	&__file-status {
-		flex-shrink: 0;
-		font-size: 10px;
-		font-weight: 700;
-		width: 14px;
-		text-align: center;
-
-		&--m { color: #f89b6f; }
-		&--a { color: #6ff8a0; }
-		&--d { color: #f86f6f; }
-		&--r { color: #6f9ef8; }
+	&__panel__checkbox {
+		border: 2px solid red;
 	}
 
 	&__file-name {
@@ -343,12 +344,6 @@ loadStatus();
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	&__empty-section {
-		padding: 8px 20px;
-		font-size: 11.5px;
-		color: #374151;
 	}
 
 	&__spacer {
