@@ -46,10 +46,22 @@
 			<ProjectManager v-else />
 		 </div>
 	</div>
+
+	<NDrawer
+		v-model:show="showActivityLog"
+		:max-width="1000"
+		resizable
+		placement="right"
+	>
+		<NDrawerContent title="Activity Log" closable>
+			<ActivityLog />
+		</NDrawerContent>
+	</NDrawer>
 </template>
 
 <script setup lang="ts">
 import {computed, onMounted} from 'vue';
+import {NDrawer, NDrawerContent} from 'naive-ui';
 import {Splitpanes, Pane} from 'splitpanes';
 import Sidebar from './Sidebar/Sidebar.vue';
 import CommitHistory from './CommitHistory/CommitHistory.vue';
@@ -58,13 +70,14 @@ import FileDiff from './FileDiff/FileDiff.vue';
 import StagingPanel from './FileDiff/StagingPanel.vue';
 import ProjectsSidebar from './ProjectsSidebar.vue';
 import Toolbar from './Toolbar.vue';
+import ActivityLog from './ActivityLog/ActivityLog.vue';
 import {useProject} from '@/composables/useProject';
 import {useCommits} from '@/composables/useCommits';
 import {useLayout} from '@/composables/useLayout';
 import {useGit} from '@/composables/useGit';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
-const {openFileDiff, closeFileDiff, sidebarCollapsed} = useLayout();
+const {openFileDiff, closeFileDiff, sidebarCollapsed, showActivityLog} = useLayout();
 const {activePath} = useGit();
 
 function handleClose(): void {

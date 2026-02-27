@@ -19,6 +19,7 @@ export type {IStash} from './models/Stash';
 export type {IReference} from './models/Reference';
 export type {IFileStatus, IWorkingTreeStatus} from './models/FileStatus';
 export type {IRepositoryStatus} from './models/RepositoryStatus';
+export type {IActivityLog} from './models/ActivityLog';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 export {GitError, parseGitError} from './errors/GitError';

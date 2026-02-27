@@ -32,6 +32,9 @@
 	</div>
 
 	<div class="profile">
+		<NButton text title="Activity Log" @click="toggleActivityLog">
+			<Icon name="mdi-text-box-outline" />
+		</NButton>
 		<Icon name="mdi-account" />
 	</div>
 
@@ -54,6 +57,7 @@ import {useGit} from '@/composables/useGit';
 import {useCommits} from '@/composables/useCommits';
 import {useStash} from '@/composables/useStash';
 import {useWorkingTree} from '@/composables/useWorkingTree';
+import {useLayout} from '@/composables/useLayout';
 import ReferenceModal from './ReferenceModal.vue';
 import {EReferenceModalType} from '@/domain';
 
@@ -63,7 +67,8 @@ const
 	{pull, push} = useGit(),
 	{selectedHashes, loadCommits} = useCommits(),
 	{stashes, stashSave, stashPop} = useStash(),
-	{loadStatus} = useWorkingTree();
+	{loadStatus} = useWorkingTree(),
+	{toggleActivityLog} = useLayout();
 
 const message = useMessage();
 const showBranchModal = ref(false);
@@ -148,7 +153,10 @@ const actions = computed(() => [{
 	.profile {
 		width: 200px;
 		height: 40px;
-		text-align: right;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px;
 	}
 
 	&__branch-path {

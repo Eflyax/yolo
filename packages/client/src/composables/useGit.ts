@@ -2,6 +2,7 @@ import {ref} from 'vue';
 import {useWebSocket} from './useWebSocket';
 import {useProject} from './useProject';
 import {useLayout} from './useLayout';
+import {useActivityLog} from './useActivityLog';
 import {ENetworkCommand} from '@/domain';
 import {parseGitError} from '@/domain';
 
@@ -11,7 +12,8 @@ export function useGit() {
 	const
 		{call} = useWebSocket(),
 		{currentProject} = useProject(),
-		{setLoading} = useLayout();
+		{setLoading} = useLayout(),
+		{addLog} = useActivityLog();
 
 	function repoPath(): string {
 		if (!currentProject.value) {
@@ -23,6 +25,8 @@ export function useGit() {
 
 	async function callGit(...args: string[]): Promise<string> {
 		setLoading(true);
+		const cmdLabel = 'git ' + args.join(' ');
+		addLog({type: 'git', status: 'info', direction: 'request', message: cmdLabel});
 
 		try {
 			const result = await call(ENetworkCommand.GitCall, {
@@ -30,10 +34,12 @@ export function useGit() {
 				args,
 			});
 
+			addLog({type: 'git', status: 'success', direction: 'response', message: cmdLabel});
 			return result as string;
 		}
 		catch (err: unknown) {
 			const message = err instanceof Error ? err.message : String(err);
+			addLog({type: 'git', status: 'error', direction: 'response', message});
 			throw parseGitError(message, -1);
 		}
 		finally {
