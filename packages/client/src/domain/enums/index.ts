@@ -50,3 +50,9 @@ export enum EConnectionStatus {
 	Connected = 'connected',
 	Disconnected = 'disconnected',
 }
+
+export enum EReferenceModalType {
+	Branch = 'branch',
+	Tag = 'tag',
+	Stash = 'stash',
+}

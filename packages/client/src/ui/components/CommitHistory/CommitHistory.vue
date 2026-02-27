@@ -55,8 +55,10 @@
 	<ReferenceModal
 		v-model:show="showReferenceModal"
 		:type="referenceModalType"
-		mode="create"
+		:mode="referenceModalMode"
 		:commit-hash="referenceModalCommitHash"
+		:initial-name="referenceModalInitialName"
+		:stash-id="referenceModalStashId"
 		@done="refresh"
 	/>
 </template>
@@ -89,7 +91,15 @@ const {loadBranches} = useBranches();
 const {currentProject} = useProject();
 const {loading} = useLayout();
 
-const {contextMenuCommit, showReferenceModal, referenceModalType, referenceModalCommitHash} = useContextMenu();
+const {
+	contextMenuCommit,
+	showReferenceModal,
+	referenceModalType,
+	referenceModalMode,
+	referenceModalCommitHash,
+	referenceModalInitialName,
+	referenceModalStashId,
+} = useContextMenu();
 
 const scrollEl = ref<HTMLElement | null>(null);
 

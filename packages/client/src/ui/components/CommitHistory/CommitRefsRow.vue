@@ -33,6 +33,8 @@
 				:class="{'ref-tag--active': isActive(ref)}"
 				:style="{backgroundColor: tagColor}"
 				:title="getTitle(ref)"
+				:test-id="`ref-${ref.id}`"
+				@dblclick.stop="handleDblClick(ref)"
 				@contextmenu.prevent="contextMenuRef($event, refContextTarget(ref))"
 			>
 				<!-- Branch: ikony local + remote -->
@@ -99,8 +101,12 @@ import type {ICommit} from '@/domain';
 import {useBranches} from '@/composables/useBranches';
 import {useContextMenu} from '@/composables/useContextMenu';
 import {useTags} from '@/composables/useTags';
+import {useGit} from '@/composables/useGit';
+import {useCommits} from '@/composables/useCommits';
 
-const {currentBranch, branches} = useBranches();
+const {currentBranch, branches, switchBranch, createBranch, loadBranches} = useBranches();
+const {checkout} = useGit();
+const {loadCommits} = useCommits();
 const {remoteTags} = useTags();
 const {contextMenuRef} = useContextMenu();
 
@@ -207,9 +213,35 @@ const mergedRefs = computed((): IMergedRef[] => {
 const lineColor = computed(() => getGraphColor(props.commit.level ?? 0));
 const tagColor = computed(() => getGraphColor(props.commit.level ?? 0));
 
+const sortedRefs = computed((): IMergedRef[] => {
+	const all = mergedRefs.value;
+	const activeIdx = all.findIndex(r => isActive(r));
+
+	if (activeIdx <= 0) return all;
+
+	return [all[activeIdx]!, ...all.slice(0, activeIdx), ...all.slice(activeIdx + 1)];
+});
+
 const shownRefs = computed(() =>
-	expanded.value ? mergedRefs.value : mergedRefs.value.slice(0, 1),
+	expanded.value ? sortedRefs.value : sortedRefs.value.slice(0, 1),
 );
+
+async function handleDblClick(ref: IMergedRef): Promise<void> {
+	if (ref.isBranch) {
+		if (ref.isLocal) {
+			await switchBranch(ref.name);
+		}
+		else {
+			const remote = ref.remotes[0] ?? 'origin';
+			await createBranch(ref.name, `${remote}/${ref.name}`);
+		}
+	}
+	else {
+		await checkout(ref.name);
+		await loadBranches();
+		await loadCommits();
+	}
+}
 
 const overflowCount = computed(() => mergedRefs.value.length - 1);
 

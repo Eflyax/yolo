@@ -11,7 +11,7 @@
 		test-id="reference-name-input"
 		ref="inputRef"
 		v-model:value="name"
-		:placeholder="type === 'branch' ? 'Branch name' : 'Tag name'"
+		:placeholder="placeholder"
 		@keydown.enter="confirm"
 	/>
 
@@ -37,13 +37,15 @@ import {ref, computed, watch} from 'vue';
 import {NModal, NInput, NButton, useMessage} from 'naive-ui';
 import {useBranches} from '@/composables/useBranches';
 import {useGit} from '@/composables/useGit';
+import {EReferenceModalType} from '@/domain';
 
 const props = defineProps<{
 	show: boolean;
-	type: 'branch' | 'tag';
+	type: EReferenceModalType;
 	mode: 'create' | 'rename';
 	commitHash?: string;
 	initialName?: string;
+	stashId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -53,7 +55,7 @@ const emit = defineEmits<{
 
 const message = useMessage();
 const {createBranch, renameBranch} = useBranches();
-const {createTag} = useGit();
+const {createTag, callGit} = useGit();
 
 const name = ref('');
 const submitting = ref(false);
@@ -66,9 +68,19 @@ const showModel = computed({
 
 const title = computed(() => {
 	if (props.mode === 'rename') {
-		return props.type === 'branch' ? 'Rename Branch' : 'Rename Tag';
+		if (props.type === EReferenceModalType.Branch) return 'Rename Branch';
+		if (props.type === EReferenceModalType.Tag) return 'Rename Tag';
+		if (props.type === EReferenceModalType.Stash) return 'Rename Stash';
 	}
-	return props.type === 'branch' ? 'New Branch' : 'New Tag';
+	if (props.type === EReferenceModalType.Branch) return 'New Branch';
+	if (props.type === EReferenceModalType.Tag) return 'New Tag';
+	return 'New Stash';
+});
+
+const placeholder = computed(() => {
+	if (props.type === EReferenceModalType.Branch) return 'Branch name';
+	if (props.type === EReferenceModalType.Tag) return 'Tag name';
+	return 'Stash name';
 });
 
 watch(() => props.show, (val) => {
@@ -88,22 +100,30 @@ async function confirm(): Promise<void> {
 	submitting.value = true;
 
 	try {
-		if (props.mode === 'create') {
-			if (props.type === 'branch') {
+		if (props.type === EReferenceModalType.Stash && props.mode === 'rename') {
+			const id = props.stashId;
+			const hash = props.commitHash;
+			if (id && hash) {
+				await callGit('stash', 'drop', id);
+				await callGit('stash', 'store', '-m', trimmed, hash);
+			}
+		}
+		else if (props.mode === 'create') {
+			if (props.type === EReferenceModalType.Branch) {
 				const hash = props.commitHash && props.commitHash !== 'WORKING_TREE'
 					? props.commitHash
 					: undefined;
 				await createBranch(trimmed, hash);
 			}
-			else {
+			else if (props.type === EReferenceModalType.Tag) {
 				const hash = props.commitHash && props.commitHash !== 'WORKING_TREE'
 					? props.commitHash
 					: undefined;
 				await createTag(trimmed, hash);
 			}
 		}
-		else {
-			if (props.type === 'branch') {
+		else if (props.mode === 'rename') {
+			if (props.type === EReferenceModalType.Branch) {
 				await renameBranch(props.initialName ?? '', trimmed);
 			}
 		}

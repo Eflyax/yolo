@@ -1,8 +1,11 @@
+import {ref} from 'vue';
 import {useWebSocket} from './useWebSocket';
 import {useProject} from './useProject';
 import {useLayout} from './useLayout';
 import {ENetworkCommand} from '@/domain';
 import {parseGitError} from '@/domain';
+
+const activePath = ref<string | null>(null);
 
 export function useGit() {
 	const
@@ -39,6 +42,8 @@ export function useGit() {
 	}
 
 	async function readFile(filePath: string, options: Record<string, unknown> = {}): Promise<string> {
+		activePath.value = filePath;
+
 		const result = await call(ENetworkCommand.ReadFile, {
 			repo_path: repoPath(),
 			file_path: filePath,
@@ -188,6 +193,7 @@ export function useGit() {
 	}
 
 	return {
+		activePath,
 		callGit,
 		readFile,
 		writeFile,

@@ -37,7 +37,7 @@
 
 	<ReferenceModal
 		v-model:show="showBranchModal"
-		type="branch"
+		:type="EReferenceModalType.Branch"
 		mode="create"
 		:commit-hash="selectedHashes[0]"
 		@done="loadCommits()"
@@ -55,6 +55,7 @@ import {useCommits} from '@/composables/useCommits';
 import {useStash} from '@/composables/useStash';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import ReferenceModal from './ReferenceModal.vue';
+import {EReferenceModalType} from '@/domain';
 
 const
 	{currentProject} = useProject(),

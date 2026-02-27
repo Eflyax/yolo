@@ -54,7 +54,7 @@
 						test-id="unstaged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
-						@click="activePath = file.path; emit('openDiff', file.path)"
+						@click="handleFileClick(file.path)"
 						@contextmenu.prevent="contextMenuFile($event, file.path)"
 					>
 						<div>
@@ -66,7 +66,7 @@
 						<NButton
 							test-id="stage-file-btn"
 							size="tiny"
-							class="staging-panel__stage-action"
+							class="staging-panel__stage-all"
 							type="success"
 							secondary
 							@click.stop="stageFile(file.path)"
@@ -112,7 +112,7 @@
 						test-id="staged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
-						@click="activePath = file.path; emit('openDiff', file.path)"
+						@click="handleFileClick(file.path)"
 					>
 						<div>
 							<FileStatus :status="file.status" />
@@ -197,10 +197,8 @@ const emit = defineEmits<{
 
 const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges} = useWorkingTree();
 const {currentBranch} = useBranches();
-const {commit} = useGit();
+const {commit, readFile, activePath} = useGit();
 const {contextMenuFile} = useContextMenu();
-
-const activePath = ref<string | null>(null);
 const showDiscardConfirm = ref(false);
 const unstagedExpanded = ref(true);
 const stagedExpanded = ref(true);
@@ -223,6 +221,11 @@ function fileName(path: string): string {
 	const parts = path.split('/');
 
 	return parts[parts.length - 1] ?? path;
+}
+
+async function handleFileClick(filePath: string): Promise<void> {
+	await readFile(filePath);
+	emit('openDiff', filePath);
 }
 
 async function handleCommit(): Promise<void> {

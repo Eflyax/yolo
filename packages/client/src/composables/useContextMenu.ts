@@ -6,14 +6,18 @@ import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useCommits} from '@/composables/useCommits';
 import {useBranches} from '@/composables/useBranches';
 import {useTags} from '@/composables/useTags';
+import {EReferenceModalType} from '@/domain';
 import type {ICommit} from '@/domain';
 
 const
 	THEME = 'win10 dark';
 
 const showReferenceModal = ref(false);
-const referenceModalType = ref<'branch' | 'tag'>('branch');
+const referenceModalType = ref<EReferenceModalType>(EReferenceModalType.Branch);
+const referenceModalMode = ref<'create' | 'rename'>('create');
 const referenceModalCommitHash = ref<string | undefined>();
+const referenceModalInitialName = ref<string | undefined>();
+const referenceModalStashId = ref<string | undefined>();
 
 export interface IRefContextTarget {
 	name: string;
@@ -52,6 +56,17 @@ export function useContextMenu() {
 				{label: 'Apply stash', onClick: async () => stashAction('apply')},
 				{label: 'Pop stash', onClick: async () => stashAction('pop')},
 				{label: 'Delete stash', onClick: async () => stashAction('drop')},
+				{
+					label: 'Rename',
+					onClick: () => {
+						referenceModalType.value = EReferenceModalType.Stash;
+						referenceModalMode.value = 'rename';
+						referenceModalCommitHash.value = commit.hash;
+						referenceModalInitialName.value = commit.subject;
+						referenceModalStashId.value = stashId;
+						showReferenceModal.value = true;
+					},
+				},
 			);
 		}
 		else {
@@ -64,16 +79,20 @@ export function useContextMenu() {
 				{
 					label: 'Create tag here',
 					onClick: () => {
-						referenceModalType.value = 'tag';
+						referenceModalType.value = EReferenceModalType.Tag;
+						referenceModalMode.value = 'create';
 						referenceModalCommitHash.value = commit.hash;
+						referenceModalInitialName.value = undefined;
 						showReferenceModal.value = true;
 					},
 				},
 				{
 					label: 'Create branch here',
 					onClick: () => {
-						referenceModalType.value = 'branch';
+						referenceModalType.value = EReferenceModalType.Branch;
+						referenceModalMode.value = 'create';
 						referenceModalCommitHash.value = commit.hash;
+						referenceModalInitialName.value = undefined;
 						showReferenceModal.value = true;
 					},
 				},
@@ -195,6 +214,9 @@ export function useContextMenu() {
 		contextMenuRef,
 		showReferenceModal,
 		referenceModalType,
+		referenceModalMode,
 		referenceModalCommitHash,
+		referenceModalInitialName,
+		referenceModalStashId,
 	};
 }

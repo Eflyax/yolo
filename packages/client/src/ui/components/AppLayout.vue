@@ -23,9 +23,8 @@
 					class="pane-center"
 				>
 					<FileDiff
-						v-if="selectedFilePath"
-						:file-path="selectedFilePath"
-						@close="closeFileDiff()"
+						v-if="activePath"
+						@close="handleClose"
 					/>
 					<CommitHistory
 						v-else
@@ -62,9 +61,16 @@ import Toolbar from './Toolbar.vue';
 import {useProject} from '@/composables/useProject';
 import {useCommits} from '@/composables/useCommits';
 import {useLayout} from '@/composables/useLayout';
+import {useGit} from '@/composables/useGit';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
-const {selectedFilePath, openFileDiff, closeFileDiff, sidebarCollapsed} = useLayout();
+const {openFileDiff, closeFileDiff, sidebarCollapsed} = useLayout();
+const {activePath} = useGit();
+
+function handleClose(): void {
+	activePath.value = null;
+	closeFileDiff();
+}
 const {currentProject, openLastOpenProject} = useProject();
 const {selectedHashes, selectCommit} = useCommits();
 

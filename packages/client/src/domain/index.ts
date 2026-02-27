@@ -6,6 +6,7 @@ export {
 	ENetworkCommand,
 	EGitErrorCode,
 	EConnectionStatus,
+	EReferenceModalType,
 } from './enums';
 
 // ── Models ────────────────────────────────────────────────────────────────────

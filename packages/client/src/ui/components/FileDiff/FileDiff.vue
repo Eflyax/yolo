@@ -41,16 +41,23 @@
 					</svg>
 				</button>
 
-				<button test-id="stage-file-btn" class="file-diff__action-btn file-diff__action-btn--primary" @click="emit('close')">
-					Stage File
-				</button>
-
-				<button test-id="close-file-diff-btn" class="file-diff__action-btn" title="Close" @click="emit('close')">
-					<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-					</svg>
-				</button>
+				<NButton
+					test-id="stage-file-btn-diff"
+					size="tiny"
+					type="success"
+					secondary
+					:disabled="!activePath"
+					@click.stop="handleStageFile"
+				>
+					Stage file
+				</NButton>
 			</div>
+
+			<button test-id="close-file-diff-btn" class="file-diff__action-btn" title="Close" @click="emit('close')">
+				<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+					<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+				</svg>
+			</button>
 		</div>
 
 		<!-- Monaco diff editor -->
@@ -69,15 +76,17 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
+import {NButton} from 'naive-ui';
 import {VueMonacoDiffEditor} from '@guolao/vue-monaco-editor';
-
-const props = defineProps<{
-	filePath: string
-}>();
+import {useGit} from '@/composables/useGit';
+import {useWorkingTree} from '@/composables/useWorkingTree';
 
 const emit = defineEmits<{
 	close: []
 }>();
+
+const {activePath, stageFile} = useGit();
+const {loadStatus} = useWorkingTree();
 
 type TabKey = 'unstaged' | 'fileDiff' | 'gitDiff';
 
@@ -89,7 +98,13 @@ const tabs: {key: TabKey; label: string}[] = [
 	{key: 'gitDiff', label: 'Git Diff'},
 ];
 
-const pathParts = computed(() => props.filePath.split('/'));
+const pathParts = computed(() => (activePath.value ?? '').split('/'));
+
+async function handleStageFile(): Promise<void> {
+	if (!activePath.value) return;
+	await stageFile(activePath.value);
+	await loadStatus();
+}
 
 const editorOptions = {
 	renderSideBySide: true,

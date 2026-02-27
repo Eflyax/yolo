@@ -8,7 +8,7 @@
 		}"
 		@click="emit('select')"
 	>
-		<span class="branch-item__dot" :style="{background: color}" />
+		<Icon :name="isRemote ? 'mdi-cloud-outline' : 'mdi-laptop'" />
 		<span class="branch-item__name">{{ displayName }}</span>
 		<span v-if="isActive" class="branch-item__badge">HEAD</span>
 	</div>
@@ -58,13 +58,6 @@ const displayName = computed(() => {
 	&--active {
 		color: #e5e7eb;
 		font-weight: 500;
-	}
-
-	&__dot {
-		flex-shrink: 0;
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
 	}
 
 	&__name {
