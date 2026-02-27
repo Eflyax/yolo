@@ -17,7 +17,10 @@
       "icons/128x128.png",
       "icons/256x256.png",
       "icons/icon.png"
-    ]
+    ],
+    "resources": {
+      "../../remote-worker/dist/remote-worker-linux-x64": "remote-worker-linux-x64"
+    }
   },
   "app": {
     "windows": [

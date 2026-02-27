@@ -52,14 +52,13 @@ export function useProject() {
 	const
 		{connect} = useWebSocket();
 
-	function openProject(project: IProject): void {
-		const
-			updated = updateProject(project.id, {dateLastOpen: Date.now()});
+	async function openProject(project: IProject): Promise<void> {
+		const updated = updateProject(project.id, {dateLastOpen: Date.now()});
 
 		localStorage.setItem(LAST_OPEN_PROJECT, project.id);
 		currentProject.value = updated ?? project;
 
-		connect(project);
+		await connect(project);
 	}
 
 	function closeProject(): void {
@@ -74,7 +73,9 @@ export function useProject() {
 			const project = getProject(lastProjectId);
 
 			if (project) {
-				openProject(project);
+				openProject(project).catch(() => {
+					// Silent failure if server is not available on startup
+				});
 			}
 		}
 	}

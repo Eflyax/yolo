@@ -29,6 +29,7 @@ export enum ENetworkCommand {
 	ReadFile = 'readFile',
 	BrowseFiles = 'browseFiles',
 	SshAgentInit = 'sshAgentInit',
+	Heartbeat = 'heartbeat',
 }
 
 export enum EGitErrorCode {

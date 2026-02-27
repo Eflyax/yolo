@@ -1,6 +1,6 @@
 import {ref, readonly} from 'vue';
 import {WebSocketClient} from '@/infrastructure/websocket/WebSocketClient';
-import {SshClient} from '@/infrastructure/ssh/SshClient';
+import {SshTunnelClient} from '@/infrastructure/ssh/SshTunnelClient';
 import type {ITransportClient} from '@/infrastructure/ITransportClient';
 import {EConnectionStatus, ENetworkCommand, EServerType} from '@/domain';
 import type {IProject} from '@/domain';
@@ -9,30 +9,33 @@ const client = ref<ITransportClient | null>(null);
 const status = ref<EConnectionStatus>(EConnectionStatus.Idle);
 
 export function useWebSocket() {
-	function connect(project: IProject): void {
-		if (client.value) {
-			client.value.close();
-		}
-
+	async function connect(project: IProject): Promise<void> {
+		client.value?.close();
 		status.value = EConnectionStatus.Connecting;
 
 		try {
+			let newClient: ITransportClient;
+
 			if (project.serverType === EServerType.SSH) {
-				client.value = new SshClient(
+				const t = new SshTunnelClient(
 					project.server,
 					project.port,
 					project.sshUser ?? '',
 					project.sshKeyPath,
 				);
+				await t.connect();
+				newClient = t;
 			}
 			else {
-				client.value = new WebSocketClient(`ws://${project.server}:${project.port}`);
+				newClient = new WebSocketClient(`ws://${project.server}:${project.port}`);
 			}
 
+			client.value = newClient;
 			status.value = EConnectionStatus.Connected;
 		}
-		catch {
+		catch (e) {
 			status.value = EConnectionStatus.Disconnected;
+			throw e;
 		}
 	}
 

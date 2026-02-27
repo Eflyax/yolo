@@ -1,0 +1,10 @@
+{
+  "name": "@git-yak/remote-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build:linux": "bun build src/index.ts --compile --target bun-linux-x64-musl --outfile dist/remote-worker-linux-x64"
+  }
+}
