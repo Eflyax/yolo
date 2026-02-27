@@ -15,6 +15,7 @@
 			<NButton
 				v-for="action of actions"
 				:key="action.label"
+				:test-id="`toolbar-${action.label.toLowerCase()}-btn`"
 				class="toolbar__action-btn"
 				:title="action.label"
 				:disabled="action.disabled"

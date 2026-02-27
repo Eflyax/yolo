@@ -8,13 +8,13 @@
 			</div>
 		</div>
 		<div class="project-actions">
-			<n-button size="small" type="success" @click="emit('open', project)">
+			<n-button test-id="project-open-btn" size="small" type="success" @click="emit('open', project)">
 				<template #icon><Icon name="mdi-play" /></template>
 			</n-button>
-			<n-button size="small" type="info" @click="emit('edit', project)">
+			<n-button test-id="project-edit-btn" size="small" type="info" @click="emit('edit', project)">
 				<template #icon><Icon name="mdi-pencil" /></template>
 			</n-button>
-			<n-button size="small" type="error" @click="emit('delete', project)">
+			<n-button test-id="project-delete-btn" size="small" type="error" @click="emit('delete', project)">
 				<template #icon><Icon name="mdi-trash-can" /></template>
 			</n-button>
 		</div>

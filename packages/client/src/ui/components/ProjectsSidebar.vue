@@ -4,6 +4,7 @@
 		<n-tooltip placement="right" :delay="600">
 			<template #trigger>
 				<n-button
+					test-id="open-repo-manager-btn"
 					class="open-repo-manager"
 					title="Manage repositories"
 					:type="!currentProject ? 'info' : 'default'"
@@ -29,6 +30,7 @@
 			>
 				<template #trigger>
 					<button
+						test-id="project-btn"
 						class="project-btn"
 						:class="{'project-btn--active': currentProject?.id === project.id}"
 						:style="{'--project-color': project.color ?? '#6f9ef8'}"

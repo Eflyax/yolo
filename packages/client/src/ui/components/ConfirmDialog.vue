@@ -10,8 +10,8 @@
 
 	<template #footer>
 		<div class="confirm-dialog__footer">
-			<NButton @click="cancel">No</NButton>
-			<NButton type="error" @click="confirm">Yes</NButton>
+			<NButton test-id="confirm-dialog-no-btn" @click="cancel">No</NButton>
+			<NButton test-id="confirm-dialog-yes-btn" type="error" @click="confirm">Yes</NButton>
 		</div>
 	</template>
 </NModal>

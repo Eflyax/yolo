@@ -13,6 +13,7 @@
 				<span
 					v-for="(segment, i) in pathSegments"
 					:key="i"
+					test-id="breadcrumb-segment"
 					class="segment"
 					@click="navigateTo(pathUpTo(i))"
 				>
@@ -26,6 +27,7 @@
 				<template v-else>
 					<div
 						v-if="currentPath !== '/'"
+						test-id="navigate-up-btn"
 						class="entry entry--dir"
 						@click="navigateUp"
 					>
@@ -36,6 +38,7 @@
 					<div
 						v-for="entry in entries"
 						:key="entry.name"
+						test-id="file-entry"
 						class="entry"
 						:class="{'entry--dir': entry.isDirectory, 'entry--file': !entry.isDirectory}"
 						@click="entry.isDirectory ? navigateTo(joinPath(currentPath, entry.name)) : undefined"
@@ -50,7 +53,7 @@
 
 			<div class="footer">
 				<span class="current-path">{{ currentPath }}</span>
-				<n-button type="success" size="small" @click="emit('select', currentPath)">
+				<n-button test-id="select-folder-btn" type="success" size="small" @click="emit('select', currentPath)">
 					Select this folder
 				</n-button>
 			</div>

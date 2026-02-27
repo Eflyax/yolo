@@ -8,6 +8,7 @@
 	@after-enter="inputRef?.focus()"
 >
 	<NInput
+		test-id="reference-name-input"
 		ref="inputRef"
 		v-model:value="name"
 		:placeholder="type === 'branch' ? 'Branch name' : 'Tag name'"
@@ -16,8 +17,9 @@
 
 	<template #footer>
 		<div class="modal-footer">
-			<NButton @click="cancel">Cancel</NButton>
+			<NButton test-id="reference-modal-cancel-btn" @click="cancel">Cancel</NButton>
 			<NButton
+				test-id="reference-modal-confirm-btn"
 				type="primary"
 				:disabled="!name.trim() || submitting"
 				:loading="submitting"

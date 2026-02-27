@@ -1,5 +1,6 @@
 <template>
 	<div
+		test-id="branch-item-select"
 		class="branch-item"
 		:class="{
 			'branch-item--active': isActive,

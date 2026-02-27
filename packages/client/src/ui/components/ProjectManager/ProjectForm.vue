@@ -8,6 +8,7 @@
 		<n-form label-placement="left" label-width="120">
 			<n-form-item label="Alias">
 				<n-input
+					test-id="alias-input"
 					v-model:value="form.alias"
 					placeholder="My project"
 					:maxlength="40"
@@ -16,11 +17,11 @@
 
 			<n-form-item label="Location">
 				<n-radio-group v-model:value="isLocal">
-					<n-radio-button :value="true">
+					<n-radio-button test-id="location-this-pc-radio" :value="true">
 						<Icon name="mdi-laptop" />
 						This PC
 					</n-radio-button>
-					<n-radio-button :value="false">
+					<n-radio-button test-id="location-remote-server-radio" :value="false">
 						<Icon name="mdi-server" />
 						Remote server
 					</n-radio-button>
@@ -30,11 +31,13 @@
 			<n-form-item v-if="!isLocal" label="Server">
 				<n-input-group>
 					<n-input
+						test-id="server-input"
 						v-model:value="form.server"
 						placeholder="192.168.1.100"
 						style="flex: 1;"
 					/>
 					<n-input-number
+						test-id="port-input"
 						v-model:value="form.port"
 						placeholder="3000"
 						:min="1"
@@ -47,12 +50,14 @@
 			<n-form-item label="Path">
 				<n-input-group>
 					<n-input
+						test-id="path-input"
 						:value="form.path"
 						placeholder="/path/to/repo"
 						:disabled="true"
 						style="flex: 1;"
 					/>
 					<n-button
+						test-id="browse-folder-btn"
 						type="info"
 						ghost
 						@click="showBrowser = true"
@@ -64,6 +69,7 @@
 
 			<n-form-item label="SSH Private Key">
 				<n-input
+					test-id="ssh-key-input"
 					v-model:value="form.sshPrivateKey"
 					type="textarea"
 					placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
@@ -74,6 +80,7 @@
 
 			<n-form-item label="Group">
 				<n-select
+					test-id="group-select"
 					v-model:value="form.groupId"
 					:options="groupOptions"
 					placeholder="No group"
@@ -97,8 +104,9 @@
 
 		<template #footer>
 			<div class="form-actions">
-				<n-button @click="emit('cancel')">Cancel</n-button>
+				<n-button test-id="project-form-cancel-btn" @click="emit('cancel')">Cancel</n-button>
 				<n-button
+					test-id="project-form-save-btn"
 					type="primary"
 					:disabled="!form.alias || !form.path"
 					@click="handleSave"

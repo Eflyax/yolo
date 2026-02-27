@@ -3,6 +3,7 @@
 		<!-- Header -->
 		<div class="staging-panel__header">
 			<NButton
+				test-id="discard-all-btn"
 				size="tiny"
 				type="error"
 				ghost
@@ -23,7 +24,7 @@
 				<div
 					class="staging-panel__section-header"
 				>
-					<div @click="unstagedExpanded = !unstagedExpanded">
+					<div test-id="unstaged-section-header" @click="unstagedExpanded = !unstagedExpanded">
 						<svg
 							class="staging-panel__chevron"
 							:class="{'staging-panel__chevron--open': unstagedExpanded}"
@@ -34,6 +35,7 @@
 						<span>Unstaged Files ({{ unstagedFiles.length }})</span>
 					</div>
 					<NButton
+						test-id="stage-all-btn"
 						v-if="unstagedFiles.length"
 						class="staging-panel__stage-all"
 						size="tiny"
@@ -49,6 +51,7 @@
 					<div
 						v-for="file in unstagedFiles"
 						:key="file.path"
+						test-id="unstaged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
 						@click="activePath = file.path; emit('openDiff', file.path)"
@@ -60,6 +63,7 @@
 						</div>
 
 						<NButton
+							test-id="stage-file-btn"
 							size="tiny"
 							class="staging-panel__stage-action"
 							type="success"
@@ -77,7 +81,7 @@
 				<div
 					class="staging-panel__section-header"
 				>
-					<div @click="stagedExpanded = !stagedExpanded">
+					<div test-id="staged-section-header" @click="stagedExpanded = !stagedExpanded">
 						<svg
 							class="staging-panel__chevron"
 							:class="{'staging-panel__chevron--open': stagedExpanded}"
@@ -88,6 +92,7 @@
 						<span>Staged Files ({{ stagedFiles.length }})</span>
 					</div>
 					<NButton
+						test-id="unstage-all-btn"
 						v-if="stagedFiles.length"
 						size="tiny"
 						secondary
@@ -103,6 +108,7 @@
 					<div
 						v-for="file in stagedFiles"
 						:key="file.path"
+						test-id="staged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
 						@click="activePath = file.path; emit('openDiff', file.path)"
@@ -114,6 +120,7 @@
 						</div>
 
 						<NButton
+							test-id="unstage-file-btn"
 							size="tiny"
 							class="staging-panel__stage-action"
 							type="error"
@@ -141,6 +148,7 @@
 			</div>
 
 			<n-input
+				test-id="commit-summary-input"
 				v-model:value="commitSummary"
 				placeholder="Commit summary"
 				size="small"
@@ -148,6 +156,7 @@
 			/>
 
 			<n-input
+				test-id="commit-description-input"
 				v-model:value="commitDescription"
 				type="textarea"
 				placeholder="Description"
@@ -156,6 +165,7 @@
 				class="staging-panel__description-input"
 			/>
 			<NButton
+				test-id="commit-btn"
 				class="staging-panel__commit-btn"
 				type="success"
 				size="large"

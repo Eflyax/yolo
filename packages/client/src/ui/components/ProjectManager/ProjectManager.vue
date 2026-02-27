@@ -8,6 +8,7 @@
 				<div class="tab-content">
 					<div class="toolbar">
 						<n-input
+							test-id="search-projects-input"
 							v-model:value="filterText"
 							placeholder="Search projects…"
 							clearable
@@ -16,7 +17,7 @@
 								<Icon name="mdi-magnify" />
 							</template>
 						</n-input>
-						<n-button type="primary" @click="openAdd">
+						<n-button test-id="add-project-btn" type="primary" @click="openAdd">
 							<template #icon><Icon name="mdi-plus" /></template>
 							Add Project
 						</n-button>
@@ -75,7 +76,7 @@
 			<n-tab-pane name="groups" tab="Groups">
 				<div class="tab-content">
 					<div class="toolbar">
-						<n-button type="primary" @click="openAddGroup">
+						<n-button test-id="add-group-btn" type="primary" @click="openAddGroup">
 							<template #icon><Icon name="mdi-plus" /></template>
 							Add Group
 						</n-button>
@@ -95,6 +96,7 @@
 
 							<div class="group-actions">
 								<n-button
+									test-id="edit-group-btn"
 									size="small"
 									type="info"
 									@click="openEditGroup(group)"
@@ -102,6 +104,7 @@
 									<template #icon><Icon name="mdi-pencil" /></template>
 								</n-button>
 								<n-button
+									test-id="delete-group-btn"
 									size="small"
 									type="error"
 									@click="confirmDeleteGroup(group)"
@@ -160,8 +163,9 @@
 			</n-form>
 			<template #footer>
 				<div class="form-actions">
-					<n-button @click="showGroupForm = false">Cancel</n-button>
+					<n-button test-id="group-form-cancel-btn" @click="showGroupForm = false">Cancel</n-button>
 					<n-button
+						test-id="group-form-save-btn"
 						type="primary"
 						:disabled="!editableGroup?.name"
 						@click="handleSaveGroup"

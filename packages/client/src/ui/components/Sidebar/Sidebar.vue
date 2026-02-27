@@ -3,11 +3,13 @@
 		<!-- Search -->
 		<div class="sidebar__search">
 			<Icon
+				test-id="sidebar-toggle-btn"
 				:name="sidebarCollapsed ? 'mdi-chevron-right' : 'mdi-chevron-left'"
 				class="sidebar__collapse-btn"
 				@click="toggle"
 			/>
 			<n-input
+				test-id="filter-branches-input"
 				v-if="!sidebarCollapsed"
 				v-model:value="searchQuery"
 				placeholder="Filter branches…"
@@ -27,6 +29,7 @@
 			<!-- LOCAL -->
 			<div class="sidebar__section">
 				<div
+					test-id="local-branches-header"
 					class="sidebar__section-header"
 					@click="localExpanded = !localExpanded"
 				>
@@ -56,6 +59,7 @@
 			<!-- REMOTE -->
 			<div class="sidebar__section">
 				<div
+					test-id="remote-branches-header"
 					class="sidebar__section-header"
 					@click="remoteExpanded = !remoteExpanded"
 				>
@@ -85,7 +89,7 @@
 
 		<!-- Footer -->
 		<div v-if="!sidebarCollapsed" class="sidebar__footer">
-			<span class="sidebar__stash-link">+ STASH</span>
+			<span test-id="stash-link" class="sidebar__stash-link">+ STASH</span>
 		</div>
 	</div>
 </template>

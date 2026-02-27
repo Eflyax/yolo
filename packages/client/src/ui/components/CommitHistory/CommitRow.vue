@@ -1,5 +1,6 @@
 <template>
 	<div
+		test-id="commit-row"
 		class="commit-row"
 		:class="{'commit-row--selected': isSelected}"
 		:style="{
