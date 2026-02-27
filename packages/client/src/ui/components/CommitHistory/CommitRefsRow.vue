@@ -58,6 +58,18 @@
 				<template v-else>
 					<div class="ref-icons">
 						<Icon name="mdi-tag-outline" class="ref-icon" />
+						<Icon
+							v-if="ref.isLocal"
+							name="mdi-laptop"
+							class="ref-icon"
+							title="Local"
+						/>
+						<Icon
+							v-if="ref.remotes.length"
+							name="mdi-cloud-outline"
+							class="ref-icon"
+							:title="`Remotes: ${ref.remotes.join(', ')}`"
+						/>
 					</div>
 				</template>
 
@@ -86,13 +98,20 @@ import {getGraphColor} from './graphColors';
 import type {ICommit} from '@/domain';
 import {useBranches} from '@/composables/useBranches';
 import {useContextMenu} from '@/composables/useContextMenu';
+import {useTags} from '@/composables/useTags';
 
 const {currentBranch, branches} = useBranches();
+const {remoteTags} = useTags();
 const {contextMenuRef} = useContextMenu();
 
 function refContextTarget(mergedRef: IMergedRef) {
 	if (!mergedRef.isBranch) {
-		return {name: mergedRef.name, isLocal: false, remotes: [], isTag: true};
+		return {
+			name: mergedRef.name,
+			isLocal: mergedRef.isLocal,
+			remotes: mergedRef.remotes,
+			isTag: true,
+		};
 	}
 
 	const remoteNames = mergedRef.remotes.length
@@ -178,8 +197,8 @@ const mergedRefs = computed((): IMergedRef[] => {
 		id: r.id,
 		name: r.name,
 		isBranch: false,
-		isLocal: false,
-		remotes: [],
+		isLocal: true,
+		remotes: remoteTags.value.includes(r.name) ? ['origin'] : [],
 	}));
 
 	return [...mergedBranches, ...otherMerged];

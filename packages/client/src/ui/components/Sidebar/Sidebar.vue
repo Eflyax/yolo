@@ -112,9 +112,11 @@
 						:key="tag.name"
 						test-id="tag-item"
 						class="sidebar__tag-item"
-						@contextmenu.prevent="contextMenuRef($event, {name: tag.name, isLocal: false, remotes: [], isTag: true})"
+						@contextmenu.prevent="contextMenuRef($event, {name: tag.name, isLocal: true, remotes: remoteTags.includes(tag.name) ? ['origin'] : [], isTag: true})"
 					>
 						<Icon name="mdi-tag-outline" class="sidebar__tag-icon" />
+						<Icon name="mdi-laptop" class="sidebar__tag-icon" title="Local" />
+						<Icon v-if="remoteTags.includes(tag.name)" name="mdi-cloud-outline" class="sidebar__tag-icon" title="Remote" />
 						<span class="sidebar__tag-name">{{ tag.name }}</span>
 					</div>
 				</template>
@@ -140,7 +142,7 @@ import {useContextMenu} from '@/composables/useContextMenu';
 
 const {sidebarCollapsed, collapseSidebar, expandSidebar} = useLayout();
 const {branches, switchBranch, loadBranches} = useBranches();
-const {tags, loadTags} = useTags();
+const {tags, remoteTags, loadTags, loadRemoteTags} = useTags();
 const {contextMenuRef} = useContextMenu();
 
 function toggle(): void {
@@ -215,7 +217,7 @@ const filteredTags = computed(() => {
 });
 
 onMounted(async () => {
-	await Promise.all([loadBranches(), loadTags()]);
+	await Promise.all([loadBranches(), loadTags(), loadRemoteTags()]);
 });
 </script>
 

@@ -29,10 +29,10 @@ export function useContextMenu() {
 		{discardFile, loadStatus} = useWorkingTree(),
 		{loadCommits} = useCommits(),
 		{loadBranches, deleteBranch, deleteRemoteBranch, deleteBranchBoth} = useBranches(),
-		{loadTags} = useTags();
+		{loadTags, loadRemoteTags} = useTags();
 
 	async function refreshAll(): Promise<void> {
-		await Promise.all([loadCommits(), loadStashes(), loadStatus(), loadBranches(), loadTags()]);
+		await Promise.all([loadCommits(), loadStashes(), loadStatus(), loadBranches(), loadTags(), loadRemoteTags()]);
 	}
 
 	function contextMenuCommit(argument: {e: MouseEvent; commit: ICommit}) {
