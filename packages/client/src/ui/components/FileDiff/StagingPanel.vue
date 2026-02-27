@@ -54,7 +54,7 @@
 						test-id="unstaged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
-						@click="handleFileClick(file.path)"
+						@click="handleFileClick(file)"
 						@contextmenu.prevent="contextMenuFile($event, file.path)"
 					>
 						<div>
@@ -112,7 +112,7 @@
 						test-id="staged-file"
 						class="staging-panel__file"
 						:class="{'staging-panel__file--active': activePath === file.path}"
-						@click="handleFileClick(file.path)"
+						@click="handleFileClick(file)"
 					>
 						<div>
 							<FileStatus :status="file.status" />
@@ -186,7 +186,9 @@ import {NButton, NInput} from 'naive-ui';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useBranches} from '@/composables/useBranches';
 import {useGit} from '@/composables/useGit';
+import {useFileDiff} from '@/composables/useFileDiff';
 import {useContextMenu} from '@/composables/useContextMenu';
+import type {IFileStatus} from '@/domain';
 import FileStatus from '../FileStatus.vue';
 import Icon from '../Icon.vue';
 import ConfirmDialog from '../ConfirmDialog.vue';
@@ -197,7 +199,8 @@ const emit = defineEmits<{
 
 const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges} = useWorkingTree();
 const {currentBranch} = useBranches();
-const {commit, readFile, activePath} = useGit();
+const {commit, activePath} = useGit();
+const {loadDiff} = useFileDiff();
 const {contextMenuFile} = useContextMenu();
 const showDiscardConfirm = ref(false);
 const unstagedExpanded = ref(true);
@@ -223,9 +226,9 @@ function fileName(path: string): string {
 	return parts[parts.length - 1] ?? path;
 }
 
-async function handleFileClick(filePath: string): Promise<void> {
-	await readFile(filePath);
-	emit('openDiff', filePath);
+async function handleFileClick(file: IFileStatus): Promise<void> {
+	await loadDiff(file);
+	emit('openDiff', file.path);
 }
 
 async function handleCommit(): Promise<void> {

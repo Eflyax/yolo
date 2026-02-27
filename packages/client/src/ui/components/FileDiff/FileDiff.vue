@@ -63,23 +63,26 @@
 		<!-- Monaco diff editor -->
 		<div class="file-diff__editor">
 			<vue-monaco-diff-editor
-				:original="mockOriginal"
-				:modified="mockModified"
+				:original="original"
+				:modified="modified"
 				language="typescript"
 				theme="vs-dark"
 				:options="editorOptions"
 				class="file-diff__monaco"
+				@mount="handleEditorMount"
 			/>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import {ref, computed} from 'vue';
+import {ref, computed, onBeforeUnmount} from 'vue';
+import type {editor} from 'monaco-editor';
 import {NButton} from 'naive-ui';
 import {VueMonacoDiffEditor} from '@guolao/vue-monaco-editor';
 import {useGit} from '@/composables/useGit';
 import {useWorkingTree} from '@/composables/useWorkingTree';
+import {useFileDiff} from '@/composables/useFileDiff';
 
 const emit = defineEmits<{
 	close: []
@@ -87,6 +90,7 @@ const emit = defineEmits<{
 
 const {activePath, stageFile} = useGit();
 const {loadStatus} = useWorkingTree();
+const {original, modified} = useFileDiff();
 
 type TabKey = 'unstaged' | 'fileDiff' | 'gitDiff';
 
@@ -106,6 +110,17 @@ async function handleStageFile(): Promise<void> {
 	await loadStatus();
 }
 
+let diffEditor: editor.IStandaloneDiffEditor | null = null;
+
+function handleEditorMount(editorInstance: editor.IStandaloneDiffEditor): void {
+	diffEditor = editorInstance;
+}
+
+onBeforeUnmount(() => {
+	diffEditor?.dispose();
+	diffEditor = null;
+});
+
 const editorOptions = {
 	renderSideBySide: true,
 	readOnly: false,
@@ -120,40 +135,6 @@ const editorOptions = {
 	renderMarginRevertIcon: false,
 };
 
-// Mock content – will be replaced by real data in Phase 5
-const mockOriginal = `import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-
-export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': '/src',
-    },
-  },
-})`;
-
-const mockModified = `import { defineConfig } from 'vite'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import vue from '@vitejs/plugin-vue'
-import svgLoader from 'vite-svg-loader'
-
-const currentDir = dirname(fileURLToPath(new URL(import.meta.url)))
-const srcDir = join(currentDir, 'src')
-
-export default defineConfig({
-  plugins: [vue(), svgLoader()],
-  resolve: {
-    alias: {
-      '@': srcDir,
-    },
-    dedupe: ['vue', 'naive-ui'],
-  },
-  build: {
-    target: 'es2022',
-  },
-})`;
 </script>
 
 <style scoped lang="scss">
