@@ -1,8 +1,11 @@
 <template>
 	<div
-		:test-id="`commit-row${commit.isStash ? '-stash' : ''}`"
+		:test-id="commit.hash === 'WORKING_TREE' ? 'commit-row-working-tree' : `commit-row${commit.isStash ? '-stash' : ''}`"
 		class="commit-row"
-		:class="{'commit-row--selected': isSelected}"
+		:class="{
+			'commit-row--selected': isSelected,
+			'commit-row--conflict': commit.hash === 'WORKING_TREE' && conflictDetected,
+		}"
 		:style="{
 			height: (ROW_HEIGHT - 4) + 'px',
 			borderLeft: '2px solid ' + getGraphColor(commit.level ?? 0),
@@ -75,7 +78,7 @@ const _authorInitial = computed(() =>
 void _authorColor;
 void _authorInitial;
 
-const {workingTreeStats} = useWorkingTree();
+const {workingTreeStats, conflictDetected} = useWorkingTree();
 
 </script>
 
@@ -95,6 +98,10 @@ const {workingTreeStats} = useWorkingTree();
 
 	&--selected {
 		box-shadow: inset 0 0 0 999px rgba(black, 0.8);
+	}
+
+	&--conflict {
+		background-color: $status-modified;
 	}
 
 	&__body {

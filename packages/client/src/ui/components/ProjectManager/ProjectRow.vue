@@ -36,3 +36,12 @@ const emit = defineEmits<{
 	delete: [project: IProject];
 }>();
 </script>
+
+<style lang="scss" scoped>
+
+.project-actions {
+	display: flex;
+	gap: 6px;
+	flex-shrink: 0;
+}
+</style>

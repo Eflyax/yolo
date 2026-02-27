@@ -422,12 +422,6 @@ function confirmDeleteGroup(group: IProjectGroup): void {
 	max-width: 340px;
 }
 
-.project-actions {
-	display: flex;
-	gap: 6px;
-	flex-shrink: 0;
-}
-
 /* ── Groups ────────────────────────────────────── */
 
 .group-list {

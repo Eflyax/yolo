@@ -4,7 +4,9 @@
 		<div class="repository">
 			 <Toolbar :hide-actions="isVisible" />
 
-			<ProjectManager v-if="!currentProject" />
+			<ProjectManager
+				v-if="!currentProject"
+			/>
 
 			<ConnectionStatus v-else-if="isVisible" />
 
@@ -138,5 +140,9 @@ onMounted(() => {
 	background-color: $bg-panel;
 	border-left: 1px solid $border;
 	overflow: hidden;
+}
+
+.project-manager {
+	margin: 20px auto;
 }
 </style>

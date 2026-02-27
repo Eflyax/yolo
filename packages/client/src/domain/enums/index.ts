@@ -11,7 +11,7 @@ export enum EFileStatus {
 	Modified = 'M',
 	Deleted = 'D',
 	Renamed = 'R',
-	Copied = 'C',
+	Conflicted = 'C',
 	Untracked = '?',
 	Unmodified = ' ',
 	UpdatedUnmerged = 'U',

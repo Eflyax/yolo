@@ -20,6 +20,11 @@
 			name="mdi-minus"
 			class="file-status__icon"
 		/>
+		<Icon
+			v-else-if="status === EFileStatus.Conflicted"
+			name="mdi-alert-outline"
+			class="file-status__icon"
+		/>
 	</span>
 </template>
 
@@ -48,5 +53,6 @@ const props = defineProps<{
 	&--A .file-status__icon { fill: $status-added; }
 	&--D .file-status__icon { fill: $status-deleted; }
 	&--R .file-status__icon { fill: $status-renamed; }
+	&--C .file-status__icon { fill: $color-danger; }
 }
 </style>

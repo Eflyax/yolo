@@ -32,18 +32,18 @@
 						>
 							<path d="M7 10l5 5 5-5z"/>
 						</svg>
-						<span>Unstaged Files ({{ unstagedFiles.length }})</span>
+						<span>{{ conflictDetected ? 'Conflicted Files' : 'Unstaged Files' }} ({{ unstagedFiles.length }})</span>
 					</div>
 					<NButton
 						test-id="stage-all-btn"
 						v-if="unstagedFiles.length"
 						class="staging-panel__stage-all"
 						size="tiny"
-						type="success"
+						:type="conflictDetected ? 'warning' : 'success'"
 						secondary
 						@click="stageAll"
 					>
-						Stage all changes
+						{{ conflictDetected ? 'Mark all resolved' : 'Stage all changes' }}
 					</NButton>
 				</div>
 
@@ -58,7 +58,7 @@
 						@contextmenu.prevent="contextMenuFile($event, file.path)"
 					>
 						<div>
-							<FileStatus :status="file.status" />
+							<FileStatus :status="conflictDetected ? EFileStatus.Conflicted : file.status" />
 
 							<span class="staging-panel__file-name">{{ fileName(file.path) }}</span>
 						</div>
@@ -66,12 +66,12 @@
 						<NButton
 							test-id="stage-file-btn"
 							size="tiny"
-							class="staging-panel__stage-all"
-							type="success"
+							class="staging-panel__stage-action"
+							:type="conflictDetected ? 'warning' : 'success'"
 							secondary
 							@click.stop="stageFile(file.path)"
 						>
-							Stage file
+							{{ conflictDetected ? 'Mark resolved' : 'Stage file' }}
 						</NButton>
 					</div>
 				</div>
@@ -90,7 +90,7 @@
 						>
 							<path d="M7 10l5 5 5-5z"/>
 						</svg>
-						<span>Staged Files ({{ stagedFiles.length }})</span>
+						<span>{{ conflictDetected ? 'Resolved Files' : 'Staged Files' }} ({{ stagedFiles.length }})</span>
 					</div>
 					<NButton
 						test-id="unstage-all-btn"
@@ -171,7 +171,7 @@
 				type="success"
 				size="large"
 				secondary
-				:disabled="!stagedFiles.length || !commitSummary.trim()"
+				:disabled="!stagedFiles.length || !commitSummary.trim() || (conflictDetected && !!unstagedFiles.length)"
 				@click="handleCommit"
 			>
 				Commit
@@ -191,13 +191,14 @@ import {useContextMenu} from '@/composables/useContextMenu';
 import type {IFileStatus} from '@/domain';
 import FileStatus from '../FileStatus.vue';
 import Icon from '../Icon.vue';
+import {EFileStatus} from '@/domain/enums';
 import ConfirmDialog from '../ConfirmDialog.vue';
 
 const emit = defineEmits<{
 	openDiff: [filePath: string]
 }>();
 
-const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges} = useWorkingTree();
+const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile, discardAllChanges, conflictDetected} = useWorkingTree();
 const {currentBranch} = useBranches();
 const {commit, activePath} = useGit();
 const {loadDiff} = useFileDiff();

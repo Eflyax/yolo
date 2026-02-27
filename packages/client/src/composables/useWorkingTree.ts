@@ -1,9 +1,13 @@
 import {ref, computed, readonly} from 'vue';
 import type {IWorkingTreeStatus, IFileStatus} from '@/domain';
-import {EFileStatus, EFileArea} from '@/domain';
+import {EFileStatus, EFileArea, ENetworkCommand} from '@/domain';
 import {useGit} from './useGit';
+import {useWebSocket} from './useWebSocket';
+import {useProject} from './useProject';
 
-const status = ref<IWorkingTreeStatus>({staged: [], unstaged: []});
+const
+	status = ref<IWorkingTreeStatus>({staged: [], unstaged: []}),
+	conflictDetected = ref(false);
 
 function parseStatus(output: string): IWorkingTreeStatus {
 	const tokens = output.split('\0').filter((t, i, arr) => i < arr.length - 1 || t);
@@ -20,8 +24,10 @@ function parseStatus(output: string): IWorkingTreeStatus {
 			continue;
 		}
 
-		const x = token[0] as EFileStatus;
-		const y = token[1] as EFileStatus;
+		const xCode = token[0]!;
+		const yCode = token[1]!;
+		const x = xCode as EFileStatus;
+		const y = yCode as EFileStatus;
 		const path = token.slice(3);
 		let oldPath: string | undefined;
 
@@ -60,6 +66,8 @@ function parseStatus(output: string): IWorkingTreeStatus {
 
 export function useWorkingTree() {
 	const {callGit, stageFile: gitStageFile, stageAll: gitStageAll, unstageFile: gitUnstageFile, unstageAll: gitUnstageAll, discardFile: gitDiscardFile, discardAllChanges: gitDiscardAllChanges} = useGit();
+	const {call} = useWebSocket();
+	const {currentProject} = useProject();
 
 	const hasChanges = computed(
 		() => status.value.staged.length || status.value.unstaged.length,
@@ -77,6 +85,17 @@ export function useWorkingTree() {
 		);
 
 		status.value = parseStatus(output);
+
+		try {
+			await call(ENetworkCommand.ReadFile, {
+				repo_path: currentProject.value?.path ?? '',
+				file_path: '.git/MERGE_MSG',
+			});
+			conflictDetected.value = true;
+		}
+		catch {
+			conflictDetected.value = false;
+		}
 	}
 
 	async function stageFile(filePath: string): Promise<void> {
@@ -130,6 +149,7 @@ export function useWorkingTree() {
 		hasChanges,
 		stagedCount,
 		unstagedCount,
+		conflictDetected: readonly(conflictDetected),
 		loadStatus,
 		stageFile,
 		stageAll,

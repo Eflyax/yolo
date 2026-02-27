@@ -80,7 +80,6 @@ import {computed} from 'vue';
 import type {ICommit} from '@/domain';
 import {getGraphColor} from './graphColors';
 import ArchiveIcon from '@/assets/svg/archive-outline.svg?component';
-import {useCommits} from '@/composables/useCommits';
 
 const X_STEP = 20;
 const Y_STEP = 28;
@@ -95,8 +94,6 @@ const props = defineProps<{
 	commits: readonly ICommit[]
 	selectedHash?: string
 }>();
-
-const {selectedHashes} = useCommits();
 
 const commitMap = computed(() => {
 	const map = new Map<string, Readonly<ICommit>>();
