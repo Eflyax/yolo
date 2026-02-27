@@ -7,3 +7,7 @@ dist/
 *.png
 CLAUDE.md
 instructions.txt
+
+# Tauri / Rust
+packages/client/src-tauri/target/
+packages/client/src-tauri/WixTools/

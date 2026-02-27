@@ -6,7 +6,9 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vue-tsc --noEmit && vite build",
-		"typecheck": "vue-tsc --noEmit"
+		"typecheck": "vue-tsc --noEmit",
+		"tauri": "tauri",
+		"tauri:dev": "tauri dev"
 	},
 	"dependencies": {
 		"@guolao/vue-monaco-editor": "^1.5.1",
@@ -20,6 +22,7 @@
 		"vuedraggable": "^4.1.0"
 	},
 	"devDependencies": {
+		"@tauri-apps/cli": "^2.0.0",
 		"@vitejs/plugin-vue": "^6.0.3",
 		"@vue/tsconfig": "^0.7.0",
 		"sass-embedded": "^1.97.3",

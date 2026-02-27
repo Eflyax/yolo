@@ -30,6 +30,9 @@ export default defineConfig({
 			},
 		},
 	},
+	optimizeDeps: {
+		exclude: ['fsevents', '@vitejs/plugin-vue'],
+	},
 	server: {
 		host: true,
 		port: 5173,

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schema.tauri.app/core/schema/capability",
+  "identifier": "default",
+  "description": "Default capability for git-yak",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open"
+  ]
+}
