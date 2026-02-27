@@ -53,12 +53,14 @@ export function useProject() {
 		{connect} = useWebSocket();
 
 	async function openProject(project: IProject): Promise<void> {
-		const updated = updateProject(project.id, {dateLastOpen: Date.now()});
+		const
+			updated = updateProject(project.id, {dateLastOpen: Date.now()});
 
 		localStorage.setItem(LAST_OPEN_PROJECT, project.id);
-		currentProject.value = updated ?? project;
 
 		await connect(project);
+
+		currentProject.value = updated ?? project;
 	}
 
 	function closeProject(): void {

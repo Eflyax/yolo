@@ -8,7 +8,7 @@ import {useActivityLog} from '@/composables/useActivityLog';
 
 const REMOTE_BINARY_PATH = '~/.local/bin/gityak';
 const REMOTE_WORKER_VERSION = '1.0.0';
-const FORCE_PROVISION = true;
+const FORCE_PROVISION = false;
 
 export class SshTunnelClient implements ITransportClient {
 	private serverChild: Child | null = null;
@@ -85,13 +85,25 @@ export class SshTunnelClient implements ITransportClient {
 		this.log({type: 'ssh', status: 'info', direction: 'request', message: `Starting remote worker on ${this.host}`});
 
 		return new Promise((resolve, reject) => {
+			let settled = false;
+			const timeoutId = setTimeout(() => {
+				if (!settled) {
+					settled = true;
+					const err = new Error('Server startup timeout (15s)');
+					this.log({type: 'ssh', status: 'error', direction: 'response', message: err.message});
+					reject(err);
+				}
+			}, 15_000);
+
 			const cmd = Command.create('ssh', this.buildSshArgs(
 				`ONESHOT=1 PORT=0 ${REMOTE_BINARY_PATH}`,
 			));
 
 			cmd.stdout.addListener('data', (line: string) => {
 				const m = /SERVER_READY\|PORT:(\d+)/.exec(line);
-				if (m) {
+				if (m && !settled) {
+					settled = true;
+					clearTimeout(timeoutId);
 					const port = Number(m[1]);
 					this.log({type: 'ssh', status: 'success', direction: 'response', message: `Remote worker ready on port ${port}`});
 					resolve(port);
@@ -99,7 +111,9 @@ export class SshTunnelClient implements ITransportClient {
 			});
 
 			cmd.on('close', ({code}: {code: number | null}) => {
-				if (code !== 0 && code !== null) {
+				if (code !== 0 && code !== null && !settled) {
+					settled = true;
+					clearTimeout(timeoutId);
 					const err = new Error(`Remote worker exited with code ${code}`);
 					this.log({type: 'ssh', status: 'error', direction: 'response', message: err.message});
 					reject(err);
@@ -109,15 +123,13 @@ export class SshTunnelClient implements ITransportClient {
 			cmd.spawn()
 				.then(child => { this.serverChild = child; })
 				.catch(err => {
-					this.log({type: 'ssh', status: 'error', direction: 'response', message: err instanceof Error ? err.message : String(err)});
-					reject(err);
+					if (!settled) {
+						settled = true;
+						clearTimeout(timeoutId);
+						this.log({type: 'ssh', status: 'error', direction: 'response', message: err instanceof Error ? err.message : String(err)});
+						reject(err);
+					}
 				});
-
-			setTimeout(() => {
-				const err = new Error('Server startup timeout (15s)');
-				this.log({type: 'ssh', status: 'error', direction: 'response', message: err.message});
-				reject(err);
-			}, 15_000);
 		});
 	}
 
@@ -170,8 +182,14 @@ export class SshTunnelClient implements ITransportClient {
 	}
 
 	private async runSsh(cmd: string): Promise<string> {
+		this.log({type: 'ssh', status: 'info', direction: 'request', message: `ssh: ${cmd}`});
 		const r = await Command.create('ssh', this.buildSshArgs(cmd)).execute();
-		if (r.code !== 0) throw new Error(r.stderr || `SSH command failed: ${cmd}`);
+		if (r.code !== 0) {
+			const detail = r.stderr?.trim() || `exit ${r.code}`;
+			this.log({type: 'ssh', status: 'error', direction: 'response', message: `ssh error (${r.code}): ${detail}`});
+			throw new Error(detail);
+		}
+		this.log({type: 'ssh', status: 'success', direction: 'response', message: `ssh ok: ${r.stdout.trim().slice(0, 120)}`});
 		return r.stdout;
 	}
 

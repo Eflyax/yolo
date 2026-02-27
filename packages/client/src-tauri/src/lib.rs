@@ -33,11 +33,16 @@ fn get_server_binary_path(app: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e: tauri::Error| e.to_string())
 }
 
+#[tauri::command]
+fn write_log(msg: String) {
+    eprintln!("[app] {}", msg);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![detect_ssh_keys, find_free_port, get_server_binary_path])
+        .invoke_handler(tauri::generate_handler![detect_ssh_keys, find_free_port, get_server_binary_path, write_log])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
