@@ -18,8 +18,9 @@
 				class="toolbar__action-btn"
 				:title="action.label"
 				:disabled="action.disabled"
-				quaternary
+				secondary
 				size="small"
+				@click="action.onClick?.()"
 			>
 				<div class="content">
 					<p>{{ action.label }}</p>
@@ -32,37 +33,103 @@
 	<div class="profile">
 		<Icon name="mdi-account" />
 	</div>
+
+	<ReferenceModal
+		v-model:show="showBranchModal"
+		type="branch"
+		mode="create"
+		:commit-hash="selectedHashes[0]"
+		@done="loadCommits()"
+	/>
 </div>
 </template>
 
 <script setup lang="ts">
-import {NButton} from 'naive-ui';
+import {ref, computed} from 'vue';
+import {NButton, useMessage} from 'naive-ui';
 import {useProject} from '@/composables/useProject';
 import {useBranches} from '@/composables/useBranches';
+import {useGit} from '@/composables/useGit';
+import {useCommits} from '@/composables/useCommits';
+import {useStash} from '@/composables/useStash';
+import {useWorkingTree} from '@/composables/useWorkingTree';
+import ReferenceModal from './ReferenceModal.vue';
 
 const
 	{currentProject} = useProject(),
-	{currentBranch} = useBranches();
+	{currentBranch, loadBranches} = useBranches(),
+	{pull, push} = useGit(),
+	{selectedHashes, loadCommits} = useCommits(),
+	{stashes, stashSave, stashPop} = useStash(),
+	{loadStatus} = useWorkingTree();
 
-const
-	actions = [{
-		icon: "mdi-arrow-down-bold",
-		label: "Pull",
-	}, {
-		icon: "mdi-arrow-up-bold",
-		label: "Push",
-	}, {
-		icon: "mdi-source-branch",
-		label: "Branch",
-	}, {
-		icon: "mdi-archive-arrow-down-outline",
-		label: "Stash",
-		disabled: false
-	}, {
-		icon: "mdi-archive-arrow-up-outline",
-		label: 'Pop',
-		disabled: false,
-	}];
+const message = useMessage();
+const showBranchModal = ref(false);
+
+async function handlePull(): Promise<void> {
+	try {
+		await pull();
+		await Promise.all([loadCommits(), loadBranches()]);
+	}
+	catch (err: unknown) {
+		message.error(err instanceof Error ? err.message : String(err));
+	}
+}
+
+async function handlePush(): Promise<void> {
+	try {
+		await push();
+	}
+	catch (err: unknown) {
+		message.error(err instanceof Error ? err.message : String(err));
+	}
+}
+
+async function handleStash(): Promise<void> {
+	try {
+		await stashSave();
+		await Promise.all([loadCommits(), loadStatus()]);
+	}
+	catch (err: unknown) {
+		message.error(err instanceof Error ? err.message : String(err));
+	}
+}
+
+async function handlePop(): Promise<void> {
+	try {
+		await stashPop('stash@{0}');
+		await Promise.all([loadCommits(), loadStatus()]);
+	}
+	catch (err: unknown) {
+		message.error(err instanceof Error ? err.message : String(err));
+	}
+}
+
+const popDisabled = computed(() => stashes.value.length === 0);
+
+const actions = computed(() => [{
+	icon: "mdi-arrow-down-bold",
+	label: "Pull",
+	onClick: handlePull,
+}, {
+	icon: "mdi-arrow-up-bold",
+	label: "Push",
+	onClick: handlePush,
+}, {
+	icon: "mdi-source-branch",
+	label: "Branch",
+	onClick: () => { showBranchModal.value = true; },
+}, {
+	icon: "mdi-archive-arrow-down-outline",
+	label: "Stash",
+	disabled: false,
+	onClick: handleStash,
+}, {
+	icon: "mdi-archive-arrow-up-outline",
+	label: 'Pop',
+	disabled: popDisabled.value,
+	onClick: handlePop,
+}]);
 </script>
 
 <style scoped lang="scss">
@@ -108,10 +175,19 @@ const
 	&__actions {
 		display: flex;
 		width: 300px;
-		height: 45px;
 		align-items: center;
 		justify-content: center;
-		gap: 10px;
+		gap: 5px;
+
+		.toolbar__action-btn {
+			height: 48px;
+			width: 48px;
+			background-color: #202327;
+
+			&:hover {
+				box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.3);
+			}
+		}
 	}
 
 	&__action-btn {
