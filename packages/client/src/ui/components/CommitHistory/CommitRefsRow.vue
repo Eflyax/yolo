@@ -33,6 +33,7 @@
 				:class="{'ref-tag--active': isActive(ref)}"
 				:style="{backgroundColor: tagColor}"
 				:title="getTitle(ref)"
+				@contextmenu.prevent="contextMenuRef($event, refContextTarget(ref))"
 			>
 				<!-- Branch: ikony local + remote -->
 				<template v-if="ref.isBranch">
@@ -84,8 +85,29 @@ import Icon from '@/ui/components/Icon.vue';
 import {getGraphColor} from './graphColors';
 import type {ICommit} from '@/domain';
 import {useBranches} from '@/composables/useBranches';
+import {useContextMenu} from '@/composables/useContextMenu';
 
-const {currentBranch} = useBranches();
+const {currentBranch, branches} = useBranches();
+const {contextMenuRef} = useContextMenu();
+
+function refContextTarget(mergedRef: IMergedRef) {
+	if (!mergedRef.isBranch) {
+		return {name: mergedRef.name, isLocal: false, remotes: [], isTag: true};
+	}
+
+	const remoteNames = mergedRef.remotes.length
+		? mergedRef.remotes
+		: branches.value
+			.filter(b => b.isRemote && b.name.split('/').slice(1).join('/') === mergedRef.name)
+			.map(b => b.name.split('/')[0] ?? 'origin');
+
+	return {
+		name: mergedRef.name,
+		isLocal: mergedRef.isLocal,
+		remotes: remoteNames,
+		isTag: false,
+	};
+}
 
 interface IMergedRef {
 	id: string;

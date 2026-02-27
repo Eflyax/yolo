@@ -49,9 +49,10 @@
 						v-for="branch in filteredLocalBranches"
 						:key="branch.name"
 						:name="branch.name"
-						:color="branch.color"
-						:is-active="branch.name === currentBranch"
-						@select="currentBranch = branch.name"
+						:color="branchColor(branch.name)"
+						:is-active="branch.isCurrent"
+						@select="switchBranch(branch.name)"
+						@contextmenu.prevent="contextMenuRef($event, localRefTarget(branch.name))"
 					/>
 				</template>
 			</div>
@@ -79,10 +80,43 @@
 						v-for="branch in filteredRemoteBranches"
 						:key="branch.name"
 						:name="branch.name"
-						:color="branch.color"
+						:color="branchColor(shortBranchName(branch.name))"
 						:is-remote="true"
 						@select="() => {}"
+						@contextmenu.prevent="contextMenuRef($event, remoteRefTarget(branch.name))"
 					/>
+				</template>
+			</div>
+
+			<!-- TAGS -->
+			<div class="sidebar__section">
+				<div
+					test-id="tags-header"
+					class="sidebar__section-header"
+					@click="tagsExpanded = !tagsExpanded"
+				>
+					<svg
+						class="sidebar__chevron"
+						:class="{'sidebar__chevron--open': tagsExpanded}"
+						width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+					>
+						<path d="M7 10l5 5 5-5z"/>
+					</svg>
+					<span>TAGS</span>
+					<span class="sidebar__section-count">({{ filteredTags.length }})</span>
+				</div>
+
+				<template v-if="tagsExpanded">
+					<div
+						v-for="tag in filteredTags"
+						:key="tag.name"
+						test-id="tag-item"
+						class="sidebar__tag-item"
+						@contextmenu.prevent="contextMenuRef($event, {name: tag.name, isLocal: false, remotes: [], isTag: true})"
+					>
+						<Icon name="mdi-tag-outline" class="sidebar__tag-icon" />
+						<span class="sidebar__tag-name">{{ tag.name }}</span>
+					</div>
 				</template>
 			</div>
 		</div>
@@ -95,12 +129,19 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed} from 'vue';
+import {ref, computed, onMounted} from 'vue';
 import {NInput} from 'naive-ui';
 import BranchItem from './BranchItem.vue';
+import Icon from '@/ui/components/Icon.vue';
 import {useLayout} from '@/composables/useLayout';
+import {useBranches} from '@/composables/useBranches';
+import {useTags} from '@/composables/useTags';
+import {useContextMenu} from '@/composables/useContextMenu';
 
 const {sidebarCollapsed, collapseSidebar, expandSidebar} = useLayout();
+const {branches, switchBranch, loadBranches} = useBranches();
+const {tags, loadTags} = useTags();
+const {contextMenuRef} = useContextMenu();
 
 function toggle(): void {
 	sidebarCollapsed.value ? expandSidebar() : collapseSidebar();
@@ -111,46 +152,70 @@ const COLORS = [
 	'#c46ff8', '#f8e56f', '#6feef8', '#f86fc4',
 ];
 
-interface Branch {
-	name: string
-	color: string
+function branchColor(name: string): string {
+	let hash = 0;
+
+	for (const c of name) {
+		hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+	}
+
+	return COLORS[hash % COLORS.length]!;
 }
 
-const currentBranch = ref('master');
+function shortBranchName(fullName: string): string {
+	const parts = fullName.split('/');
+
+	return parts.slice(1).join('/');
+}
+
+function remoteName(fullName: string): string {
+	return fullName.split('/')[0] ?? 'origin';
+}
+
+function localRefTarget(name: string) {
+	const remoteNames = branches.value
+		.filter(b => b.isRemote && shortBranchName(b.name) === name)
+		.map(b => remoteName(b.name));
+
+	return {name, isLocal: true, remotes: remoteNames, isTag: false};
+}
+
+function remoteRefTarget(fullName: string) {
+	const name = shortBranchName(fullName);
+	const remote = remoteName(fullName);
+	const isLocal = branches.value.some(b => !b.isRemote && b.name === name);
+
+	return {name, isLocal, remotes: [remote], isTag: false};
+}
+
 const searchQuery = ref('');
 const localExpanded = ref(true);
 const remoteExpanded = ref(false);
+const tagsExpanded = ref(false);
 
-const localBranches: Branch[] = [
-	{name: 'master', color: COLORS[0]},
-	{name: 'feature', color: COLORS[1]},
-	{name: 'FOO-226', color: COLORS[2]},
-	{name: 'FOO-231', color: COLORS[3]},
-	{name: 'hotfix', color: COLORS[4]},
-	{name: 'release/4.1.0', color: COLORS[5]},
-	{name: 'release/4.2.0', color: COLORS[6]},
-	{name: 'release/4.3.0', color: COLORS[7]},
-	{name: 'SecurityUpdates', color: COLORS[0]},
-];
-
-const remoteBranches: Branch[] = [
-	{name: 'origin/master', color: COLORS[0]},
-	{name: 'origin/feature', color: COLORS[1]},
-	{name: 'origin/FOO-226', color: COLORS[2]},
-	{name: 'origin/release/4.1.0', color: COLORS[5]},
-	{name: 'origin/release/4.2.0', color: COLORS[6]},
-];
+const localBranches = computed(() => branches.value.filter(b => !b.isRemote));
+const remoteBranches = computed(() => branches.value.filter(b => b.isRemote));
 
 const filteredLocalBranches = computed(() => {
 	const q = searchQuery.value.toLowerCase();
 
-	return q ? localBranches.filter(b => b.name.toLowerCase().includes(q)) : localBranches;
+	return q ? localBranches.value.filter(b => b.name.toLowerCase().includes(q)) : localBranches.value;
 });
 
 const filteredRemoteBranches = computed(() => {
 	const q = searchQuery.value.toLowerCase();
 
-	return q ? remoteBranches.filter(b => b.name.toLowerCase().includes(q)) : remoteBranches;
+	return q ? remoteBranches.value.filter(b => b.name.toLowerCase().includes(q)) : remoteBranches.value;
+});
+
+const filteredTags = computed(() => {
+	const q = searchQuery.value.toLowerCase();
+
+	return q ? tags.value.filter(t => t.name.toLowerCase().includes(q)) : tags.value;
+});
+
+onMounted(async () => {
+	await Promise.all([loadBranches(), loadTags()]);
 });
 </script>
 
@@ -233,6 +298,54 @@ const filteredRemoteBranches = computed(() => {
 
 		&:not(&--open) {
 			transform: rotate(-90deg);
+		}
+	}
+
+	&__tag-item {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 3px 8px 3px 20px;
+		cursor: pointer;
+		border-radius: 3px;
+		font-size: 12.5px;
+		color: #9ca3af;
+		white-space: nowrap;
+		overflow: hidden;
+
+		&:hover {
+			background-color: rgba(255, 255, 255, 0.05);
+			color: #d1d5db;
+		}
+	}
+
+	&__tag-icon {
+		flex-shrink: 0;
+		width: 13px;
+		height: 13px;
+		opacity: 0.6;
+	}
+
+	&__tag-name {
+		flex: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	&__section-header {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 8px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+		color: #4b5563;
+		text-transform: uppercase;
+		cursor: pointer;
+
+		&:hover {
+			color: #6b7280;
 		}
 	}
 

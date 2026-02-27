@@ -5,6 +5,7 @@ import {useStash} from '@/composables/useStash';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useCommits} from '@/composables/useCommits';
 import {useBranches} from '@/composables/useBranches';
+import {useTags} from '@/composables/useTags';
 import type {ICommit} from '@/domain';
 
 const
@@ -14,16 +15,24 @@ const showReferenceModal = ref(false);
 const referenceModalType = ref<'branch' | 'tag'>('branch');
 const referenceModalCommitHash = ref<string | undefined>();
 
+export interface IRefContextTarget {
+	name: string;
+	isLocal: boolean;
+	remotes: string[];
+	isTag: boolean;
+}
+
 export function useContextMenu() {
 	const
-		{callGit} = useGit(),
+		{callGit, deleteTag, pushBranch} = useGit(),
 		{loadStashes} = useStash(),
 		{discardFile, loadStatus} = useWorkingTree(),
 		{loadCommits} = useCommits(),
-		{loadBranches} = useBranches();
+		{loadBranches, deleteBranch, deleteRemoteBranch, deleteBranchBoth} = useBranches(),
+		{loadTags} = useTags();
 
 	async function refreshAll(): Promise<void> {
-		await Promise.all([loadCommits(), loadStashes(), loadStatus(), loadBranches()]);
+		await Promise.all([loadCommits(), loadStashes(), loadStatus(), loadBranches(), loadTags()]);
 	}
 
 	function contextMenuCommit(argument: {e: MouseEvent; commit: ICommit}) {
@@ -103,9 +112,87 @@ export function useContextMenu() {
 		});
 	}
 
+	function contextMenuRef(e: MouseEvent, target: IRefContextTarget) {
+		const items = [];
+
+		items.push({
+			label: 'Copy name',
+			onClick: () => navigator.clipboard.writeText(target.name),
+		});
+
+		if (target.isTag) {
+			items.push({
+				label: `Delete ${target.name}`,
+				onClick: async () => {
+					await deleteTag(target.name);
+					await refreshAll();
+				},
+			});
+		}
+		else {
+			if (target.isLocal && target.remotes.length === 0) {
+				items.push({
+					label: 'Push',
+					onClick: async () => {
+						await pushBranch(target.name);
+						await refreshAll();
+					},
+				});
+			}
+
+			const deleteChildren = [];
+
+			if (target.isLocal) {
+				deleteChildren.push({
+					label: 'Local',
+					onClick: async () => {
+						await deleteBranch(target.name, true);
+						await refreshAll();
+					},
+				});
+			}
+
+			if (target.remotes.length > 0) {
+				deleteChildren.push({
+					label: 'Remote',
+					onClick: async () => {
+						await deleteRemoteBranch(target.name, target.remotes[0]);
+						await refreshAll();
+					},
+				});
+			}
+
+			if (target.isLocal && target.remotes.length > 0) {
+				deleteChildren.push({
+					label: 'Both',
+					onClick: async () => {
+						await deleteBranchBoth(target.name, target.remotes[0]);
+						await refreshAll();
+					},
+				});
+			}
+
+			if (deleteChildren.length === 1) {
+				items.push({
+					label: `Delete ${target.name}`,
+					onClick: deleteChildren[0].onClick,
+				});
+			}
+			else if (deleteChildren.length > 1) {
+				items.push({
+					label: `Delete ${target.name}`,
+					children: deleteChildren,
+				});
+			}
+		}
+
+		ContextMenu.showContextMenu({x: e.x, y: e.y, items, theme: THEME});
+	}
+
 	return {
 		contextMenuCommit,
 		contextMenuFile,
+		contextMenuRef,
 		showReferenceModal,
 		referenceModalType,
 		referenceModalCommitHash,
