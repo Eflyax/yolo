@@ -8,24 +8,33 @@
 				</svg>
 				<span>{{ totalCount }} file changes<template v-if="currentBranch"> on <strong>{{ currentBranch.name }}</strong></template></span>
 			</span>
-			<button class="staging-panel__stage-all" @click="handleStageAll">Stage All</button>
 		</div>
 
 		<!-- Unstaged files -->
 		<div class="staging-panel__section">
 			<div
 				class="staging-panel__section-header"
-				@click="unstagedExpanded = !unstagedExpanded"
 			>
-				<svg
-					class="staging-panel__chevron"
-					:class="{'staging-panel__chevron--open': unstagedExpanded}"
-					width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+				<div @click="unstagedExpanded = !unstagedExpanded">
+					<svg
+						class="staging-panel__chevron"
+						:class="{'staging-panel__chevron--open': unstagedExpanded}"
+						width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+					>
+						<path d="M7 10l5 5 5-5z"/>
+					</svg>
+					<span>Unstaged Files ({{ unstagedFiles.length }})</span>
+				</div>
+				<NButton
+					v-if="unstagedFiles.length"
+					class="staging-panel__stage-all"
+					size="tiny"
+					type="success"
+					secondary
+					@click="stageAll"
 				>
-					<path d="M7 10l5 5 5-5z"/>
-				</svg>
-				<span>Unstaged Files</span>
-				<span class="staging-panel__count">{{ unstagedFiles.length }}</span>
+					Stage all changes
+				</NButton>
 			</div>
 
 			<div v-if="unstagedExpanded" class="staging-panel__file-list">
@@ -47,7 +56,7 @@
 						class="staging-panel__stage-action"
 						type="success"
 						secondary
-						@click.stop="handleStageFile(file.path)"
+						@click.stop="stageFile(file.path)"
 					>
 						Stage file
 					</NButton>
@@ -59,17 +68,27 @@
 		<div class="staging-panel__section">
 			<div
 				class="staging-panel__section-header"
-				@click="stagedExpanded = !stagedExpanded"
 			>
-				<svg
-					class="staging-panel__chevron"
-					:class="{'staging-panel__chevron--open': stagedExpanded}"
-					width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+				<div @click="stagedExpanded = !stagedExpanded">
+					<svg
+						class="staging-panel__chevron"
+						:class="{'staging-panel__chevron--open': stagedExpanded}"
+						width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+					>
+						<path d="M7 10l5 5 5-5z"/>
+					</svg>
+					<span>Staged Files ({{ stagedFiles.length }})</span>
+				</div>
+				<NButton
+					v-if="stagedFiles.length"
+					size="tiny"
+					secondary
+					type="error"
+					class="staging-panel__stage-all"
+					@click="unstageAll"
 				>
-					<path d="M7 10l5 5 5-5z"/>
-				</svg>
-				<span>Staged Files</span>
-				<span class="staging-panel__count">{{ stagedFiles.length }}</span>
+					Unstage all changes
+				</NButton>
 			</div>
 
 			<div v-if="stagedExpanded" class="staging-panel__file-list">
@@ -91,7 +110,7 @@
 						class="staging-panel__stage-action"
 						type="error"
 						secondary
-						@click.stop="handleUnstageFile(file.path)"
+						@click.stop="unstageFile(file.path)"
 					>
 						Unstage file
 					</NButton>
@@ -166,7 +185,7 @@ const emit = defineEmits<{
 	openDiff: [filePath: string]
 }>();
 
-const {status, loadStatus, stageFile, stageAll, unstageFile} = useWorkingTree();
+const {status, loadStatus, stageFile, stageAll, unstageAll, unstageFile} = useWorkingTree();
 const {currentBranch} = useBranches();
 
 const activePath = ref<string | null>(null);
@@ -193,18 +212,6 @@ function fileName(path: string): string {
 	const parts = path.split('/');
 
 	return parts[parts.length - 1] ?? path;
-}
-
-async function handleStageFile(filePath: string): Promise<void> {
-	await stageFile(filePath);
-}
-
-async function handleUnstageFile(filePath: string): Promise<void> {
-	await unstageFile(filePath);
-}
-
-async function handleStageAll(): Promise<void> {
-	await stageAll();
 }
 
 loadStatus();
@@ -242,23 +249,6 @@ loadStatus();
 		}
 	}
 
-	&__stage-all {
-		flex-shrink: 0;
-		padding: 3px 10px;
-		border: none;
-		border-radius: 4px;
-		background: rgba(111, 158, 248, 0.2);
-		color: #6f9ef8;
-		font-size: 11.5px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.1s;
-
-		&:hover {
-			background: rgba(111, 158, 248, 0.3);
-		}
-	}
-
 	&__section {
 		border-bottom: 1px solid #1e2228;
 		flex-shrink: 0;
@@ -266,8 +256,7 @@ loadStatus();
 
 	&__section-header {
 		display: flex;
-		align-items: center;
-		gap: 5px;
+		justify-content: space-between;
 		padding: 6px 10px;
 		font-size: 13px;
 		border-bottom: 1px solid #1e2228;

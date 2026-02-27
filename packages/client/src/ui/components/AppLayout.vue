@@ -8,30 +8,39 @@
 				v-if="currentProject"
 				class="layout-splitpanes"
 			>
-				<Pane :size="17" :min-size="12" :max-size="30" class="pane-sidebar">
+				<Pane
+					:size="sidebarCollapsed ? 2 : 17"
+					:min-size="sidebarCollapsed ? 2 : 12"
+					:max-size="sidebarCollapsed ? 2 : 30"
+					class="pane-sidebar"
+				>
 					<Sidebar />
 				</Pane>
 
-				<Pane :size="59" :min-size="30" class="pane-center">
+				<Pane
+					:size="sidebarCollapsed ? 75 : 60"
+					:min-size="30"
+					class="pane-center"
+				>
 					<FileDiff
-						v-if="activeDiffFile"
-						:file-path="activeDiffFile"
-						@close="activeDiffFile = null"
+						v-if="selectedFilePath"
+						:file-path="selectedFilePath"
+						@close="closeFileDiff()"
 					/>
 					<CommitHistory
 						v-else
-						@open-diff="activeDiffFile = $event"
+						@open-diff="openFileDiff($event)"
 					/>
 				</Pane>
 
 				<Pane :size="24" :min-size="18" :max-size="40" class="pane-right">
 					<StagingPanel
 						v-if="isWorkingTreeSelected"
-						@open-diff="activeDiffFile = $event"
+						@open-diff="openFileDiff($event)"
 					/>
 					<CommitDetails
 						v-else
-						@open-diff="activeDiffFile = $event"
+						@open-diff="openFileDiff($event)"
 					/>
 				</Pane>
 			</Splitpanes>
@@ -41,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue';
+import {computed, onMounted} from 'vue';
 import {Splitpanes, Pane} from 'splitpanes';
 import Sidebar from './Sidebar/Sidebar.vue';
 import CommitHistory from './CommitHistory/CommitHistory.vue';
@@ -52,9 +61,10 @@ import ProjectsSidebar from './ProjectsSidebar.vue';
 import Toolbar from './Toolbar.vue';
 import {useProject} from '@/composables/useProject';
 import {useCommits} from '@/composables/useCommits';
+import {useLayout} from '@/composables/useLayout';
 import ProjectManager from './ProjectManager/ProjectManager.vue';
 
-const activeDiffFile = ref<string | null>(null);
+const {selectedFilePath, openFileDiff, closeFileDiff, sidebarCollapsed} = useLayout();
 const {currentProject, openLastOpenProject} = useProject();
 const {selectedHashes, selectCommit} = useCommits();
 

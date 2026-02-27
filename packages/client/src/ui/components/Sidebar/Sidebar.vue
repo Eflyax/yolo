@@ -2,7 +2,13 @@
 	<div class="sidebar">
 		<!-- Search -->
 		<div class="sidebar__search">
+			<Icon
+				:name="sidebarCollapsed ? 'mdi-chevron-right' : 'mdi-chevron-left'"
+				class="sidebar__collapse-btn"
+				@click="toggle"
+			/>
 			<n-input
+				v-if="!sidebarCollapsed"
 				v-model:value="searchQuery"
 				placeholder="Filter branches…"
 				size="small"
@@ -17,7 +23,7 @@
 		</div>
 
 		<!-- Branch list -->
-		<div class="sidebar__branches">
+		<div v-if="!sidebarCollapsed" class="sidebar__branches">
 			<!-- LOCAL -->
 			<div class="sidebar__section">
 				<div
@@ -78,7 +84,7 @@
 		</div>
 
 		<!-- Footer -->
-		<div class="sidebar__footer">
+		<div v-if="!sidebarCollapsed" class="sidebar__footer">
 			<span class="sidebar__stash-link">+ STASH</span>
 		</div>
 	</div>
@@ -86,8 +92,15 @@
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
-import {NInput} from 'naive-ui';
+import {NButton, NInput} from 'naive-ui';
 import BranchItem from './BranchItem.vue';
+import {useLayout} from '@/composables/useLayout';
+
+const {sidebarCollapsed, collapseSidebar, expandSidebar} = useLayout();
+
+function toggle(): void {
+	sidebarCollapsed.value ? expandSidebar() : collapseSidebar();
+}
 
 const COLORS = [
 	'#6f9ef8', '#f89b6f', '#6ff8a0', '#f86f6f',
@@ -175,8 +188,19 @@ const filteredRemoteBranches = computed(() => {
 	}
 
 	&__search {
+		display: flex;
+		align-items: center;
+		gap: 6px;
 		padding: 8px 8px 4px;
 		flex-shrink: 0;
+	}
+
+	&__collapse-btn {
+		flex-shrink: 0;
+		margin-left: auto;
+		width: 24px;
+		height: 24px;
+		cursor: pointer;
 	}
 
 	&__branches {

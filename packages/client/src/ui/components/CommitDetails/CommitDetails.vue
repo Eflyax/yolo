@@ -41,7 +41,6 @@
 				>{{ String(p).slice(0, 7) }}</span>
 			</div>
 
-
 			<!-- File list -->
 			<div class="commit-details__files">
 				<ChangedFileItem
