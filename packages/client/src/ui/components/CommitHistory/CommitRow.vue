@@ -87,14 +87,14 @@ const {workingTreeStats} = useWorkingTree();
 	padding: 0 8px 0 6px;
 	cursor: pointer;
 	margin-bottom: 4px;
-	background-color: #0d0f11;
+	background-color: $bg-app;
 
 	&:hover {
-		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.4);
+		box-shadow: inset 0 0 0 999px rgba(black, 0.4);
 	}
 
 	&--selected {
-		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.8);
+		box-shadow: inset 0 0 0 999px rgba(black, 0.8);
 	}
 
 	&__body {
@@ -109,7 +109,7 @@ const {workingTreeStats} = useWorkingTree();
 
 	&__message {
 		font-size: 12.5px;
-		color: #c9d1d9;
+		color: $text-default;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -125,13 +125,13 @@ const {workingTreeStats} = useWorkingTree();
 
 	&__date {
 		font-size: 11px;
-		color: #4b5563;
+		color: $text-faint;
 		white-space: nowrap;
 	}
 
 	&__hash {
 		font-size: 10px;
-		color: #374151;
+		color: $text-ghost;
 		font-family: monospace;
 	}
 }

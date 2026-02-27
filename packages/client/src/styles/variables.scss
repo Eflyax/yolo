@@ -1,11 +1,48 @@
-// ── Colors ───────────────────────────────────────────────────────────────────
-$color-bg: #1e1e2e;
-$color-bg-elevated: #252535;
-$color-bg-overlay: #2a2a3d;
-$color-border: #383850;
-$color-text: #cdd6f4;
-$color-text-muted: #6c7086;
-$color-accent: #6f9ef8;
-$color-danger: #f38ba8;
-$color-success: #a6e3a1;
-$color-warning: #f9e2af;
+// ── Backgrounds ───────────────────────────────────────────────────────────────
+$bg-app:             #0d0f11;
+$bg-panel:           #111318;
+$bg-section:         #1a1d21;
+$bg-toolbar:         #202327;
+$bg-button:          #2a2e35;
+$bg-button-hover:    #32373f;
+$bg-hover:           #2e333b;
+$bg-entry-hover:     #22262c;
+
+// ── Borders ───────────────────────────────────────────────────────────────────
+$border:             #1e2228;
+$border-strong:      #2e333b;
+
+// ── Text ──────────────────────────────────────────────────────────────────────
+$text-white:         #ffffff;
+$text-primary:       #e5e7eb;
+$text-secondary:     #d1d5db;
+$text-default:       #c9d1d9;
+$text-muted:         #9ca3af;
+$text-dim:           #6b7280;
+$text-faint:         #4b5563;
+$text-ghost:         #374151;
+
+// ── Accent ────────────────────────────────────────────────────────────────────
+$color-accent:       #6f9ef8;
+$color-accent-hover: #8fb4ff;
+$color-blue:         #3b82f6;
+$color-teal:         #20b2aa;
+$color-cyan:         #7ec8e3;
+
+// ── Status ────────────────────────────────────────────────────────────────────
+$color-success:      #4ade80;
+$color-danger:       #f87171;
+$color-warning:      #f8e56f;
+
+// ── File status indicators ────────────────────────────────────────────────────
+$status-modified:    #f89b6f;
+$status-added:       #6ff8a0;
+$status-deleted:     #f86f6f;
+$status-renamed:     #6feef8;
+
+// ── Project color swatches ────────────────────────────────────────────────────
+$project-emerald:    #34d399;
+$project-orange:     #fb923c;
+$project-purple:     #a78bfa;
+$project-amber:      #fbbf24;
+$project-pink-light: #f472b6;

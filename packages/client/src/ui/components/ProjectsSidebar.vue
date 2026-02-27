@@ -76,7 +76,7 @@ function initials(alias: string): string {
 
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .projects-sidebar {
 	width: 50px;
 	display: flex;
@@ -84,7 +84,7 @@ function initials(alias: string): string {
 	align-items: center;
 	gap: 4px;
 	padding: 4px 0;
-	background: #202327;
+	background: $bg-toolbar;
 	flex-shrink: 0;
 }
 
@@ -102,7 +102,7 @@ function initials(alias: string): string {
 .divider {
 	width: 28px;
 	height: 1px;
-	background: #2e333b;
+	background: $border-strong;
 	margin: 2px 0;
 }
 
@@ -120,8 +120,8 @@ function initials(alias: string): string {
 	height: 42px;
 	border-radius: 10px;
 	border: 2px solid transparent;
-	background: #2a2e35;
-	color: var(--project-color, #6f9ef8);
+	background: $bg-button;
+	color: var(--project-color, #{$color-accent});
 	font-size: 0.72em;
 	font-weight: 700;
 	letter-spacing: 0.02em;
@@ -133,13 +133,13 @@ function initials(alias: string): string {
 
 	&:hover {
 		border-radius: 14px;
-		background: #32373f;
+		background: $bg-button-hover;
 	}
 
 	&--active {
 		border-radius: 14px;
-		border-color: var(--project-color, #6f9ef8);
-		background: color-mix(in srgb, var(--project-color, #6f9ef8) 15%, #202327);
+		border-color: var(--project-color, #{$color-accent});
+		background: color-mix(in srgb, var(--project-color, #{$color-accent}) 15%, #{$bg-toolbar});
 	}
 }
 </style>

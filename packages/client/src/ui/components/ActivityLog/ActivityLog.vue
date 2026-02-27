@@ -61,18 +61,18 @@ const columns: DataTableColumns<IActivityLog> = [
 		align-items: center;
 		justify-content: space-between;
 		padding: 8px 12px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 		flex-shrink: 0;
 	}
 
 	&__title {
 		font-size: 13px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 	}
 
 	&__count {
-		color: #9ca3af;
+		color: $text-muted;
 		font-weight: 400;
 	}
 

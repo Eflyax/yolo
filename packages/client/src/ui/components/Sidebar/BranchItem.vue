@@ -46,17 +46,17 @@ const displayName = computed(() => {
 	cursor: pointer;
 	border-radius: 3px;
 	font-size: 12.5px;
-	color: #9ca3af;
+	color: $text-muted;
 	white-space: nowrap;
 	overflow: hidden;
 
 	&:hover {
-		background-color: rgba(255, 255, 255, 0.05);
-		color: #d1d5db;
+		background-color: rgba($text-white, 0.05);
+		color: $text-secondary;
 	}
 
 	&--active {
-		color: #e5e7eb;
+		color: $text-primary;
 		font-weight: 500;
 	}
 
@@ -71,8 +71,8 @@ const displayName = computed(() => {
 		font-size: 10px;
 		padding: 1px 5px;
 		border-radius: 3px;
-		background: rgba(111, 158, 248, 0.2);
-		color: #6f9ef8;
+		background: rgba($color-accent, 0.2);
+		color: $color-accent;
 		font-weight: 600;
 		letter-spacing: 0.3px;
 	}

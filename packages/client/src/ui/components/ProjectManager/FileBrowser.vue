@@ -160,7 +160,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .file-browser {
 	display: flex;
 	flex-direction: column;
@@ -174,7 +174,7 @@ onUnmounted(() => {
 	font-size: 0.9em;
 
 	&--error {
-		color: #f87171;
+		color: $color-danger;
 	}
 }
 
@@ -184,7 +184,7 @@ onUnmounted(() => {
 	align-items: center;
 	gap: 2px;
 	padding: 6px 10px;
-	background: #1a1d21;
+	background: $bg-section;
 	border-radius: 4px;
 	font-size: 0.85em;
 
@@ -193,8 +193,8 @@ onUnmounted(() => {
 		color: #888;
 		white-space: nowrap;
 
-		&:hover { color: #fff; }
-		&:last-child { color: #fff; cursor: default; }
+		&:hover { color: $text-white; }
+		&:last-child { color: $text-white; cursor: default; }
 
 		.sep {
 			margin: 0 2px;
@@ -222,8 +222,8 @@ onUnmounted(() => {
 
 	&--dir {
 		cursor: pointer;
-		color: #7ec8e3;
-		&:hover { background: #22262c; }
+		color: $color-cyan;
+		&:hover { background: $bg-entry-hover; }
 	}
 
 	&--file {
@@ -238,7 +238,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	gap: 12px;
 	padding-top: 8px;
-	border-top: 1px solid #2a2e35;
+	border-top: 1px solid $bg-button;
 
 	.current-path {
 		flex: 1;

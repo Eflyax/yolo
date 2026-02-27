@@ -12,8 +12,8 @@ html,
 body,
 #app {
 	height: 100%;
-	background-color: $color-bg;
-	color: $color-text;
+	background-color: $bg-app;
+	color: $text-primary;
 	font-size: 13px;
 }
 
@@ -27,16 +27,16 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-	background: $color-border;
+	background: $border;
 	border-radius: 3px;
 
 	&:hover {
-		background: $color-text-muted;
+		background: $text-muted;
 	}
 }
 
 svg {
 	height: 16px;
 	width: 16px;
-	fill: $color-text;
+	fill: $text-primary;
 }

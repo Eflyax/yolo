@@ -143,7 +143,7 @@ const editorOptions = {
 	flex-direction: column;
 	height: 100%;
 	overflow: hidden;
-	background-color: #0d0f11;
+	background-color: $bg-app;
 
 	&__topbar {
 		display: flex;
@@ -151,8 +151,8 @@ const editorOptions = {
 		gap: 8px;
 		padding: 0 10px;
 		height: 36px;
-		border-bottom: 1px solid #1e2228;
-		background-color: #111318;
+		border-bottom: 1px solid $border;
+		background-color: $bg-panel;
 		flex-shrink: 0;
 		overflow: hidden;
 	}
@@ -173,16 +173,16 @@ const editorOptions = {
 	}
 
 	&__breadcrumb-segment {
-		color: #6b7280;
+		color: $text-dim;
 
 		&--file {
-			color: #e5e7eb;
+			color: $text-primary;
 			font-weight: 500;
 		}
 	}
 
 	&__breadcrumb-sep {
-		color: #374151;
+		color: $text-ghost;
 		margin: 0 2px;
 	}
 
@@ -198,19 +198,19 @@ const editorOptions = {
 		border-radius: 4px;
 		font-size: 11.5px;
 		background: transparent;
-		color: #6b7280;
+		color: $text-dim;
 		cursor: pointer;
 		white-space: nowrap;
 		transition: all 0.1s;
 
 		&:hover {
-			color: #c9d1d9;
-			background: rgba(255, 255, 255, 0.05);
+			color: $text-default;
+			background: rgba($text-white, 0.05);
 		}
 
 		&--active {
-			background: rgba(111, 158, 248, 0.15);
-			color: #6f9ef8;
+			background: rgba($color-accent, 0.15);
+			color: $color-accent;
 			font-weight: 500;
 		}
 	}
@@ -232,27 +232,27 @@ const editorOptions = {
 		padding: 0 6px;
 		border: none;
 		background: transparent;
-		color: #6b7280;
+		color: $text-dim;
 		border-radius: 4px;
 		cursor: pointer;
 		font-size: 11.5px;
 		transition: all 0.1s;
 
 		&:hover {
-			background-color: rgba(255, 255, 255, 0.06);
-			color: #d1d5db;
+			background-color: rgba($text-white, 0.06);
+			color: $text-secondary;
 		}
 
 		&--primary {
-			background: #6f9ef8;
-			color: #0d0f11;
+			background: $color-accent;
+			color: $bg-app;
 			font-weight: 700;
 			font-size: 12px;
 			padding: 0 12px;
 
 			&:hover {
-				background: #8fb4ff;
-				color: #0d0f11;
+				background: $color-accent-hover;
+				color: $bg-app;
 			}
 		}
 	}

@@ -321,7 +321,7 @@ function confirmDeleteGroup(group: IProjectGroup): void {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .project-manager {
 	width: 680px;
 	min-height: 480px;
@@ -384,11 +384,11 @@ function confirmDeleteGroup(group: IProjectGroup): void {
 	justify-content: space-between;
 	padding: 8px 10px;
 	border-radius: 6px;
-	background: #1a1d21;
+	background: $bg-section;
 	border: 1px solid transparent;
 	transition: border-color 0.15s;
 
-	&:hover { border-color: #2e333b; }
+	&:hover { border-color: $border-strong; }
 }
 
 .project-info {
@@ -442,7 +442,7 @@ function confirmDeleteGroup(group: IProjectGroup): void {
 	gap: 10px;
 	padding: 10px;
 	border-radius: 6px;
-	background: #1a1d21;
+	background: $bg-section;
 }
 
 .group-item-name {
@@ -485,6 +485,6 @@ function confirmDeleteGroup(group: IProjectGroup): void {
 	transition: transform 0.15s, border-color 0.15s;
 
 	&:hover { transform: scale(1.2); }
-	&--active { border-color: #fff; transform: scale(1.15); }
+	&--active { border-color: $text-white; transform: scale(1.15); }
 }
 </style>

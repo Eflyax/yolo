@@ -47,9 +47,9 @@ function confirm(): void {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .confirm-dialog__message {
-	color: #9ca3af;
+	color: $text-muted;
 	font-size: 13px;
 	margin: 0;
 }

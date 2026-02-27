@@ -249,7 +249,7 @@ loadStatus();
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background-color: #111318;
+	background-color: $bg-panel;
 	overflow: hidden;
 	font-size: 12.5px;
 
@@ -258,7 +258,7 @@ loadStatus();
 		align-items: center;
 		justify-content: space-between;
 		padding: 8px 10px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 		flex-shrink: 0;
 		gap: 8px;
 	}
@@ -267,12 +267,12 @@ loadStatus();
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		color: #9ca3af;
+		color: $text-muted;
 		font-size: 12px;
 		overflow: hidden;
 
 		strong {
-			color: #e5e7eb;
+			color: $text-primary;
 		}
 	}
 
@@ -283,7 +283,7 @@ loadStatus();
 	}
 
 	&__section {
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__section-header {
@@ -291,21 +291,21 @@ loadStatus();
 		justify-content: space-between;
 		padding: 6px 10px;
 		font-size: 13px;
-		border-bottom: 1px solid #1e2228;
-		color: #fff;
+		border-bottom: 1px solid $border;
+		color: $text-white;
 		cursor: pointer;
 		user-select: none;
 
 		&:hover {
-			background-color: rgba(255, 255, 255, 0.03);
+			background-color: rgba($text-white, 0.03);
 		}
 	}
 
 	&__count {
 		margin-left: auto;
 		font-size: 11px;
-		color: #fff;
-		background: rgba(255, 255, 255, 0.06);
+		color: $text-white;
+		background: rgba($text-white, 0.06);
 		padding: 1px 6px;
 		border-radius: 8px;
 	}
@@ -339,7 +339,7 @@ loadStatus();
 		border-radius: 2px;
 
 		&:hover {
-			background-color: rgba(255, 255, 255, 0.04);
+			background-color: rgba($text-white, 0.04);
 
 			.staging-panel__stage-action {
 				display: inline-flex;
@@ -347,7 +347,7 @@ loadStatus();
 		}
 
 		&--active {
-			background-color: rgba(111, 158, 248, 0.1);
+			background-color: rgba($color-accent, 0.1);
 		}
 	}
 
@@ -361,14 +361,14 @@ loadStatus();
 
 	&__file-name {
 		font-size: 12px;
-		color: #c9d1d9;
+		color: $text-default;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
 	&__commit-form {
-		border-top: 1px solid #1e2228;
+		border-top: 1px solid $border;
 		padding: 8px;
 		display: flex;
 		flex-direction: column;
@@ -385,7 +385,7 @@ loadStatus();
 	&__commit-label {
 		font-size: 15px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 		flex: 1;
 	}
 
@@ -397,13 +397,13 @@ loadStatus();
 		height: 24px;
 		border: none;
 		background: transparent;
-		color: #6b7280;
+		color: $text-dim;
 		border-radius: 4px;
 		cursor: pointer;
 
 		&:hover {
-			background: rgba(255, 255, 255, 0.06);
-			color: #c9d1d9;
+			background: rgba($text-white, 0.06);
+			color: $text-default;
 		}
 	}
 
@@ -418,11 +418,11 @@ loadStatus();
 		gap: 7px;
 		padding: 3px 4px;
 		font-size: 11.5px;
-		color: #9ca3af;
+		color: $text-muted;
 		cursor: pointer;
 
 		input {
-			accent-color: #6f9ef8;
+			accent-color: $color-accent;
 		}
 	}
 }

@@ -152,7 +152,7 @@ watch(() => currentProject.value, refresh);
 	flex-direction: column;
 	height: 100%;
 	overflow: hidden;
-	background-color: #090a0b;
+	background-color: $bg-app;
 
 	&__scroll {
 		flex: 1;

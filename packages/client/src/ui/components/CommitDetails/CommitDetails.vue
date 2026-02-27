@@ -110,7 +110,7 @@ watch(
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background-color: #111318;
+	background-color: $bg-panel;
 	overflow: hidden;
 
 	&__empty {
@@ -118,7 +118,7 @@ watch(
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: #4b5563;
+		color: $text-faint;
 		font-size: 13px;
 	}
 
@@ -133,21 +133,21 @@ watch(
 	&__hash {
 		font-family: monospace;
 		font-size: 11px;
-		color: #374151;
+		color: $text-ghost;
 	}
 
 	&__hash-full {
 		font-size: 10.5px;
-		color: #4b5563;
+		color: $text-faint;
 	}
 
 	&__title {
 		padding: 4px 12px 12px;
 		font-size: 14px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 		line-height: 1.4;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__author {
@@ -155,7 +155,7 @@ watch(
 		align-items: center;
 		gap: 10px;
 		padding: 10px 12px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__avatar {
@@ -167,7 +167,7 @@ watch(
 		justify-content: center;
 		font-size: 12px;
 		font-weight: 700;
-		color: #0d0f11;
+		color: $bg-app;
 		flex-shrink: 0;
 	}
 
@@ -180,12 +180,12 @@ watch(
 	&__author-name {
 		font-size: 12.5px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 	}
 
 	&__author-date {
 		font-size: 11px;
-		color: #6b7280;
+		color: $text-dim;
 	}
 
 	&__meta-row {
@@ -193,12 +193,12 @@ watch(
 		align-items: center;
 		gap: 8px;
 		padding: 6px 12px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__meta-label {
 		font-size: 11px;
-		color: #4b5563;
+		color: $text-faint;
 		text-transform: uppercase;
 		letter-spacing: 0.4px;
 		font-weight: 600;
@@ -208,32 +208,32 @@ watch(
 		font-family: monospace;
 		font-size: 11px;
 		padding: 1px 6px;
-		background: rgba(255, 255, 255, 0.06);
+		background: rgba($text-white, 0.06);
 		border-radius: 3px;
-		color: #9ca3af;
+		color: $text-muted;
 		cursor: pointer;
 
 		&:hover {
-			background: rgba(111, 158, 248, 0.15);
-			color: #6f9ef8;
+			background: rgba($color-accent, 0.15);
+			color: $color-accent;
 		}
 	}
 
 	&__stats {
 		padding: 8px 12px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__stat {
 		font-size: 12px;
-		color: #6b7280;
+		color: $text-dim;
 	}
 
 	&__tabs {
 		display: flex;
 		gap: 2px;
 		padding: 6px 12px 4px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 	}
 
 	&__tab {
@@ -243,17 +243,17 @@ watch(
 		font-size: 12px;
 		cursor: pointer;
 		background: transparent;
-		color: #6b7280;
+		color: $text-dim;
 		transition: all 0.1s;
 
 		&:hover {
-			color: #c9d1d9;
-			background: rgba(255, 255, 255, 0.05);
+			color: $text-default;
+			background: rgba($text-white, 0.05);
 		}
 
 		&--active {
-			background: rgba(111, 158, 248, 0.15);
-			color: #6f9ef8;
+			background: rgba($color-accent, 0.15);
+			color: $color-accent;
 			font-weight: 500;
 		}
 	}

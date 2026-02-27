@@ -76,9 +76,7 @@ const message = useMessage();
 const showBranchModal = ref(false);
 
 const props = defineProps<{
-	hideActions: {
-		type: Boolean
-	},
+	hideActions: Boolean
 }>();
 
 async function handlePull(): Promise<void> {
@@ -154,9 +152,9 @@ const actions = computed(() => [{
 	justify-content: space-between;
 	padding: 0 10px;
 	height: 50px;
-	border-bottom: 1px solid #1e2228;
+	border-bottom: 1px solid $border;
 	flex-shrink: 0;
-	background-color: #202327;
+	background-color: $bg-toolbar;
 
 	.profile {
 		width: 200px;
@@ -176,17 +174,17 @@ const actions = computed(() => [{
 	}
 
 	&__project {
-		color: #9ca3af;
+		color: $text-muted;
 		font-weight: 500;
 	}
 
 	&__sep {
-		color: #fff;
+		color: $text-white;
 		font-size: 14px;
 	}
 
 	&__branch {
-		color: #e5e7eb;
+		color: $text-primary;
 		font-weight: 600;
 	}
 
@@ -200,17 +198,17 @@ const actions = computed(() => [{
 		.toolbar__action-btn {
 			height: 48px;
 			width: 48px;
-			background-color: #202327;
+			background-color: $bg-toolbar;
 
 			&:hover {
-				box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.3);
+				box-shadow: inset 0 0 0 999px rgba(black, 0.3);
 			}
 		}
 	}
 
 	&__action-btn {
 		padding: 0 4px;
-		color: #9ca3af;
+		color: $text-muted;
 		height: 40px;
 		width: 40px;
 
@@ -234,7 +232,7 @@ const actions = computed(() => [{
 		}
 
 		&:hover {
-			color: #fff;
+			color: $text-white;
 		}
 	}
 }

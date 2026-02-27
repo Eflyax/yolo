@@ -396,7 +396,7 @@ function handleSave(): void {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .project-form {
 	min-width: 560px;
 }
@@ -426,7 +426,7 @@ function handleSave(): void {
 	}
 
 	&--active {
-		border-color: #fff;
+		border-color: $text-white;
 		transform: scale(1.15);
 	}
 }

@@ -312,24 +312,24 @@ function getTitle(ref: IMergedRef): string {
 	border-radius: 3px;
 	font-size: 12px;
 	font-weight: 600;
-	color: #c9d1d9;
+	color: $text-default;
 	white-space: nowrap;
 	flex-shrink: 0;
 	cursor: pointer;
-	box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.55);
+	box-shadow: inset 0 0 0 999px rgba(black, 0.55);
 
 	&--active {
 		box-shadow: none;
-		color: #fff;
+		color: $text-white;
 
 		svg {
-			fill: #fff;
+			fill: $text-white;
 		}
 	}
 
 	&--overflow {
-		box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.55);
-		color: #fff;
+		box-shadow: inset 0 0 0 999px rgba(black, 0.55);
+		color: $text-white;
 	}
 
 	svg {

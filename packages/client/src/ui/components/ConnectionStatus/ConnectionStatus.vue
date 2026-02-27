@@ -112,8 +112,8 @@ function formatBytes(bytes: number): string {
 }
 
 .connection-status {
-	background-color: #111318;
-	border: 1px solid #1e2228;
+	background-color: $bg-panel;
+	border: 1px solid $border;
 	border-radius: 12px;
 	padding: 28px 32px;
 	width: 320px;
@@ -130,12 +130,12 @@ function formatBytes(bytes: number): string {
 	&__title {
 		font-size: 18px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 	}
 
 	&__target {
 		font-size: 13px;
-		color: #6b7280;
+		color: $text-dim;
 		font-family: monospace;
 	}
 
@@ -152,20 +152,20 @@ function formatBytes(bytes: number): string {
 		font-size: 14px;
 
 		&--done .connection-status__step-label {
-			color: #9ca3af;
+			color: $text-muted;
 		}
 
 		&--active .connection-status__step-label {
-			color: #e5e7eb;
+			color: $text-primary;
 			font-weight: 500;
 		}
 
 		&--pending .connection-status__step-label {
-			color: #4b5563;
+			color: $text-faint;
 		}
 
 		&--error .connection-status__step-label {
-			color: #f87171;
+			color: $color-danger;
 		}
 	}
 
@@ -186,7 +186,7 @@ function formatBytes(bytes: number): string {
 
 	&__progress-label {
 		font-size: 12px;
-		color: #6b7280;
+		color: $text-dim;
 		text-align: right;
 	}
 
@@ -194,36 +194,36 @@ function formatBytes(bytes: number): string {
 		display: flex;
 		align-items: flex-start;
 		gap: 8px;
-		background-color: rgba(248, 113, 113, 0.08);
-		border: 1px solid rgba(248, 113, 113, 0.2);
+		background-color: rgba($color-danger, 0.08);
+		border: 1px solid rgba($color-danger, 0.2);
 		border-radius: 8px;
 		padding: 12px;
 		font-size: 13px;
-		color: #f87171;
+		color: $color-danger;
 		line-height: 1.5;
 	}
 }
 
 .icon-done {
-	color: #4ade80;
+	color: $color-success;
 	width: 18px;
 	height: 18px;
 }
 
 .icon-active {
-	color: #e5e7eb;
+	color: $text-primary;
 	width: 18px;
 	height: 18px;
 }
 
 .icon-pending {
-	color: #4b5563;
+	color: $text-faint;
 	width: 18px;
 	height: 18px;
 }
 
 .icon-error {
-	color: #f87171;
+	color: $color-danger;
 	width: 18px;
 	height: 18px;
 	flex-shrink: 0;

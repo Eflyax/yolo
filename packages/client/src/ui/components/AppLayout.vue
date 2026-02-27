@@ -107,7 +107,7 @@ onMounted(() => {
 	display: flex;
 	height: 100vh;
 	overflow: hidden;
-	background-color: #0d0f11;
+	background-color: $bg-app;
 
 	.repository {
 		width: 100%;
@@ -124,19 +124,19 @@ onMounted(() => {
 }
 
 .pane-sidebar {
-	background-color: #111318;
-	border-right: 1px solid #1e2228;
+	background-color: $bg-panel;
+	border-right: 1px solid $border;
 	overflow: hidden;
 }
 
 .pane-center {
-	background-color: #0d0f11;
+	background-color: $bg-app;
 	overflow: hidden;
 }
 
 .pane-right {
-	background-color: #111318;
-	border-left: 1px solid #1e2228;
+	background-color: $bg-panel;
+	border-left: 1px solid $border;
 	overflow: hidden;
 }
 </style>

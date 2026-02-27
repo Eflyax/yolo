@@ -44,9 +44,9 @@ const props = defineProps<{
 		height: 14px;
 	}
 
-	&--M .file-status__icon { fill: #f89b6f; }
-	&--A .file-status__icon { fill: #6ff8a0; }
-	&--D .file-status__icon { fill: #f86f6f; }
-	&--R .file-status__icon { fill: #6feef8; }
+	&--M .file-status__icon { fill: $status-modified; }
+	&--A .file-status__icon { fill: $status-added; }
+	&--D .file-status__icon { fill: $status-deleted; }
+	&--R .file-status__icon { fill: $status-renamed; }
 }
 </style>

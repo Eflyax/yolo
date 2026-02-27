@@ -226,7 +226,7 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background-color: #111318;
+	background-color: $bg-panel;
 	user-select: none;
 
 	&__header {
@@ -234,27 +234,27 @@ onMounted(async () => {
 		align-items: center;
 		justify-content: space-between;
 		padding: 10px 10px 8px;
-		border-bottom: 1px solid #1e2228;
+		border-bottom: 1px solid $border;
 		flex-shrink: 0;
 	}
 
 	&__project-name {
 		font-size: 13px;
 		font-weight: 600;
-		color: #e5e7eb;
+		color: $text-primary;
 	}
 
 	&__branch-badge {
 		font-size: 11px;
 		padding: 2px 8px;
 		border-radius: 10px;
-		background-color: rgba(32, 178, 170, 0.2);
-		color: #20b2aa;
+		background-color: rgba($color-teal, 0.2);
+		color: $color-teal;
 		font-weight: 600;
 		cursor: pointer;
 
 		&:hover {
-			background-color: rgba(32, 178, 170, 0.3);
+			background-color: rgba($color-teal, 0.3);
 		}
 	}
 
@@ -287,7 +287,7 @@ onMounted(async () => {
 
 	&__section-count {
 		margin-left: 10px;
-		color: #4b5563;
+		color: $text-faint;
 	}
 
 	&__chevron {
@@ -311,13 +311,13 @@ onMounted(async () => {
 		cursor: pointer;
 		border-radius: 3px;
 		font-size: 12.5px;
-		color: #9ca3af;
+		color: $text-muted;
 		white-space: nowrap;
 		overflow: hidden;
 
 		&:hover {
-			background-color: rgba(255, 255, 255, 0.05);
-			color: #d1d5db;
+			background-color: rgba($text-white, 0.05);
+			color: $text-secondary;
 		}
 	}
 
@@ -342,29 +342,29 @@ onMounted(async () => {
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 0.5px;
-		color: #4b5563;
+		color: $text-faint;
 		text-transform: uppercase;
 		cursor: pointer;
 
 		&:hover {
-			color: #6b7280;
+			color: $text-dim;
 		}
 	}
 
 	&__footer {
 		padding: 8px 12px;
-		border-top: 1px solid #1e2228;
+		border-top: 1px solid $border;
 		flex-shrink: 0;
 	}
 
 	&__stash-link {
 		font-size: 11.5px;
-		color: #4b5563;
+		color: $text-faint;
 		cursor: pointer;
 		letter-spacing: 0.3px;
 
 		&:hover {
-			color: #9ca3af;
+			color: $text-muted;
 		}
 	}
 }

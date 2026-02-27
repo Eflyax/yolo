@@ -58,7 +58,7 @@ async function handleOpen(): Promise<void> {
 	font-size: 12px;
 
 	&:hover {
-		background-color: rgba(255, 255, 255, 0.05);
+		background-color: rgba($text-white, 0.05);
 	}
 
 	&__path {
@@ -68,12 +68,12 @@ async function handleOpen(): Promise<void> {
 	}
 
 	&__dir {
-		color: #4b5563;
+		color: $text-faint;
 		font-size: 11.5px;
 	}
 
 	&__name {
-		color: #c9d1d9;
+		color: $text-default;
 		font-size: 12px;
 	}
 }
