@@ -60,8 +60,16 @@
 			</button>
 		</div>
 
+		<!-- Conflict resolution editor -->
+		<ConflictEditor
+			v-if="isConflictFile"
+			:content="modified"
+			:file-path="activePath ?? ''"
+			@saved="emit('close')"
+		/>
+
 		<!-- Monaco diff editor -->
-		<div class="file-diff__editor">
+		<div v-else class="file-diff__editor">
 			<vue-monaco-diff-editor
 				:original="original"
 				:modified="modified"
@@ -83,6 +91,7 @@ import {VueMonacoDiffEditor} from '@guolao/vue-monaco-editor';
 import {useGit} from '@/composables/useGit';
 import {useWorkingTree} from '@/composables/useWorkingTree';
 import {useFileDiff} from '@/composables/useFileDiff';
+import ConflictEditor from './ConflictEditor.vue';
 
 const emit = defineEmits<{
 	close: []
@@ -103,6 +112,7 @@ const tabs: {key: TabKey; label: string}[] = [
 ];
 
 const pathParts = computed(() => (activePath.value ?? '').split('/'));
+const isConflictFile = computed(() => modified.value.includes('<<<<<<<'));
 
 async function handleStageFile(): Promise<void> {
 	if (!activePath.value) return;
